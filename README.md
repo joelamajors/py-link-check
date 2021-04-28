@@ -3,7 +3,7 @@ Python web scraper using Scrapy/Splash. This is a fast python crawler that check
 
 
 ## Setup
-- CD into the `py-link-check` and run `pip3 install requirements.txt`
+- CD into the `py-link-check` and run `pip3 install -r requirements.txt`
 - CD into the `py-link-check/hmscraper/hmscraper/spiders/hm_standard.py` directory
 - Change the `check_url` variable to the URL you're testing with
 
