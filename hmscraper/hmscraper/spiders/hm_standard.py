@@ -8,7 +8,6 @@ import sys
 check_url = "https://mister-medicare.hatfield.marketing/"
 check_url = check_url.strip("/")
 
-
 class HMScraper(scrapy.Spider):
     name = "standard"
     start_urls = []
@@ -28,9 +27,9 @@ class HMScraper(scrapy.Spider):
                 yield {
                     "Page": response.request.url,
                     "Link": link,
-                    "Local/External": "Local",
+                    "Local/External": "N/A",
                     "Mailto/Phone": True,
-                    "Response": "N/A",
+                    "Response": response.status,
                 }
 
             else:
@@ -53,6 +52,13 @@ class HMScraper(scrapy.Spider):
             else:
                 page_type = "External"
 
+                # Getting mailto / tel links
+                if "mailto:" in link or "tel:" in link:
+                    mail_tel = True
+                    page_type = "N/A"
+                else:
+                    mail_tel = False
+
                 # Logging response code
                 status_code = response.status
 
@@ -66,8 +72,6 @@ class HMScraper(scrapy.Spider):
                     "Page": page,
                     "Link": response.urljoin(link),
                     "Local/External": page_type,
-                    "Mailto/Phone": "False",
+                    "Mailto/Phone": mail_tel,
                     "Response": status_code,
                 }
-
-

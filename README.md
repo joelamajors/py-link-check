@@ -1,21 +1,41 @@
-# py-link-check
-Python web scraper using Scrapy/Splash. This is a fast python crawler that checks all links on a page and logs this to a JSON or CSV file.
+Uses Python Scrapy and splash. 
 
+## Setup Scrapy
 
-## Setup
-- CD into the `py-link-check` and run `pip3 install requirements.txt`
-- CD into the `py-link-check/hmscraper/hmscraper/spiders/hm_standard.py` directory
-- Change the `check_url` variable to the URL you're testing with
+Pull the image if you haven't
 
-## To run
-- Run crawler normally
+```
+sudo docker pull scrapinghub/splash
+```
+
+run it
+
+```
+docker run -it -p 8050:8050 --rm scrapinghub/splash
+```
+
+## Install requirements
+
+- CD into the repo and run `pip3 install -r requirements.txt`
+
+## To run:
+
+CD into the `py-link-check/hmscraper/hmscraper/spiders/hm_standard.py` directory
+
+Change the `check_url` variable to the URL you're testing with
+
+Run with no output file
+
 ```
 scrapy crawl standard
 ```
 
-- Run crawler and dump to CSV or JSON
+Run with output file
+
 ```
-scrapy crawl standard -O filename.json
+scrapy crawl standard -O beepboop.csv
+
 or 
-scrapy crawl standard -O filename.csv
+
+scrapy crawl standard -O beepboop.json
 ```

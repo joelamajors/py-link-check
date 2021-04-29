@@ -1,2 +1,5 @@
 /venv
 /hmscraper/*.json
+.DS_Store
+/hmscraper/hmscraper/*.csv
+/hmscraper/hmscraper/*.json
