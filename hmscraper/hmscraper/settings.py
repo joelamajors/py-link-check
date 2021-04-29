@@ -89,7 +89,7 @@ ROBOTSTXT_OBEY = False
 
 
 # Splash Servers
-SPLASH_URL = 'http://192.168.1.2:8050'
+SPLASH_URL = 'http://localhost:8050'
 
 # Splash Middleware
 DOWNLOADER_MIDDLEWARES = {
