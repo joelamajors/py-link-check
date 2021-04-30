@@ -1,4 +1,6 @@
-Uses Python Scrapy and splash. 
+This crawler uses Python Scrapy and Splash to crawl websites with dynamic content and test every link on each page and dumps a report of the following:
+- text file of all local urls
+- if the `-O` flag is used - a report of the page, links found, local/external, mailto/tel and reponse code will be output to a CSV or JSON file.
 
 ## Setup Scrapy
 
@@ -39,3 +41,6 @@ or
 
 scrapy crawl standard -O beepboop.json
 ```
+
+## Reports
+The list of URLs are saved under repo/hmscraper/SITE-links.txt. The report generated with the `-O` flag will be saved in the same directory with the name you've provided.
