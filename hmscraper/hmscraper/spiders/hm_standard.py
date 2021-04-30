@@ -1,14 +1,24 @@
 import scrapy
+from scrapy import signals
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
-import sys
 
 # URL here
 check_url = "https://mister-medicare.hatfield.marketing/"
 check_url = check_url.strip("/")
 
+# Storing urls for pages we've found to dump into a text file
+url_set = set()
+
 class HMScraper(scrapy.Spider):
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(HMScraper, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
+
     name = "standard"
     start_urls = []
     start_urls.append(check_url)
@@ -33,6 +43,7 @@ class HMScraper(scrapy.Spider):
                 }
 
             else:
+                url_set.add(str(response.request.url))
                 # Using meta to access request URL. 
                 yield SplashRequest(response.urljoin(link), callback=self.parse_data, meta={'original_url': link})
 
@@ -68,6 +79,8 @@ class HMScraper(scrapy.Spider):
                 else:
                     page = response.meta['original_url']
 
+                url_set.add(str(page))
+
                 yield {
                     "Page": page,
                     "Link": response.urljoin(link),
@@ -75,3 +88,12 @@ class HMScraper(scrapy.Spider):
                     "Mailto/Phone": mail_tel,
                     "Response": status_code,
                 }
+
+    # When the spider is completed, all local urls are dumped to a txt file.
+    def spider_closed(self, spider):
+        # File name
+        name = check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        
+        # Writing URLs to txt file as name of site
+        f = open(name[0]+"-links.txt", 'w+')
+        f.write('\n'.join(map(str, url_set)))
