@@ -19,8 +19,9 @@ docker run -it -p 8050:8050 --rm scrapinghub/splash
 ## Install requirements
 - Verify you have Python3 installed. If not, install this.
 - Clone the repo and CD into the repo.
-- Install Scrapy module ``` pip3 install scrapy ```
-- Install Splash module ``` pip3 install scrapy-splash ```
+- Install the following modules by running these commands in our terminal 
+``` pip3 install scrapy ```
+``` pip3 install scrapy-splash ```
 
 ## To run:
 - Change into the `py-link-check/hmscraper` directory
@@ -43,6 +44,8 @@ or
 
 scrapy crawl standard -O beepboop.json
 ```
+
+Make sure you're in the hmscraper directory. Otherwise you'll get an error. 
 
 ## Reports
 The list of URLs are saved under repo/hmscraper/SITE-links.txt. The report generated with the `-O` flag will be saved in the same directory with the name you've provided.
