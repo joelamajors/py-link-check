@@ -4,35 +4,37 @@ This crawler uses Python Scrapy and Splash to crawl websites with dynamic conten
 
 ## Setup Scrapy
 
-Pull the image if you haven't
+If this is the first time you're running this tool, you'll need to pull the image. Run the following command in a terminal window.
 
 ```
-sudo docker pull scrapinghub/splash
+docker pull scrapinghub/splash
 ```
 
-run it
+Now we need to run the docker image:
 
 ```
 docker run -it -p 8050:8050 --rm scrapinghub/splash
 ```
 
 ## Install requirements
-
-- CD into the repo and run `pip3 install -r requirements.txt`
+- Verify you have Python3 installed. If not, install this.
+- Clone the repo and CD into the repo.
+- Install Scrapy module ``` pip3 install scrapy ```
+- Install Splash module ``` pip3 install scrapy-splash ```
 
 ## To run:
+- Change into the `py-link-check/hmscraper` directory
+- Open the ```hm_standard.py``` (py-link-check\hmscraper\hmscraper\spiders\hm_standard.py). Change the URL to match the one you need to test. 
 
-CD into the `py-link-check/hmscraper/hmscraper/spiders/hm_standard.py` directory
+Now we can run the spider. We can run this one of two ways:
 
-Change the `check_url` variable to the URL you're testing with
-
-Run with no output file
+### Run with no output file
 
 ```
 scrapy crawl standard
 ```
 
-Run with output file
+### Run with output file
 
 ```
 scrapy crawl standard -O beepboop.csv
