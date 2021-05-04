@@ -35,18 +35,20 @@ pip3 install scrapy-splash
 Now we can run the spider. We can run this one of two ways:
 
 ### Run with no output file
-
+No parameters are needed. 
 ```
 scrapy crawl standard
 ```
 
 ### Run with output file
-
+We run the command with the `-O` flag indicating we want to generate an output file. Next, supply the name of the outfile. For example:  
+CSV output:  
 ```
 scrapy crawl standard -O beepboop.csv
-
-or 
-
+```
+  
+JSON output:  
+```
 scrapy crawl standard -O beepboop.json
 ```
 
