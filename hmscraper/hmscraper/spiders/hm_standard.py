@@ -71,6 +71,7 @@ class HMScraper(scrapy.Spider):
                     mail_tel = False
 
                 # Logging response code
+                print(response)
                 status_code = response.status
 
                 # Get Page Info with meta. Adjusting relative URL path

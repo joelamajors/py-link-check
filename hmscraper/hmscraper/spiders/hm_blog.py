@@ -1,6 +1,7 @@
 import scrapy
 import json
 from scrapy import signals
+from scrapy_splash import SplashRequest
 
 # URL here
 base_url = "https://aac.hatfield.marketing"
@@ -10,7 +11,17 @@ base_url = base_url.strip("/")
 # Storing urls in the set, then exporting at the end
 blog_urls = set()
 
+check_url = base_url.replace("http://", '').replace("https://", '').split("/")[0]
+
+
+
 class HmblogSpider(scrapy.Spider):
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(HmblogSpider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
 
     name = 'hmblog_twill'
     start_urls = [f'{base_url}/blog?all-page=1']
@@ -53,7 +64,43 @@ class HmblogSpider(scrapy.Spider):
             request = scrapy.Request(url, callback=self.parse_api, headers=self.headers)
             yield request
         else: 
-            for item in blog_urls:
-                yield {
-                    "URL": item
-                }
+            for url in blog_urls:
+                print(url)
+                yield SplashRequest(url, callback=self.parse_blog_sub_links,  args={'wait': 0.5})
+ 
+    def parse_blog_sub_links(self, response):
+
+        for link in response.css('a::attr(href)').getall():
+
+            status_code = response.code
+
+            if "mailto:" in link or "tel:" in link:
+                link_type = "Mailto/Tel"
+            else:
+                yield scrapy.Request(link, callback=self.parse_blog_sub_links)
+
+            if check_url in link or link.startswith("/"):
+                link_type = "Local"
+
+                if link.startswith("/"):
+                    link = check_url+link
+            else:
+                link_type = "External"
+
+            
+            yield {
+                "Page": page,
+                "Link": response.urljoin(link),
+                "Local/External": page_type,
+                "Mailto/Phone": mail_tel,
+                "Response": status_code,
+            }
+
+        # When the spider is completed, all local urls are dumped to a txt file.
+    def spider_closed(self, spider):
+        # File name
+        name = check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        
+        # Writing URLs to txt file as name of site
+        f = open(name[0]+"-blog-links.txt", 'w+')
+        f.write('\n'.join(map(str, url_set)))
