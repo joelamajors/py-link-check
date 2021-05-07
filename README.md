@@ -16,9 +16,9 @@ There's currently two crawlers in this package. Once is for standard URLs (hm_st
 ```
 hm_blog
 hm_standard
-
 ```
 <br>
+
 ## Setup Scrapy
 This tool uses Splash to act as a proxy to render dynamic pages in a browser. Fortunately Splash can be setup with docker using only 2 lines.
 
@@ -31,6 +31,7 @@ Next we need to run the docker image with the following command:
 docker run -it -p 8050:8050 --rm scrapinghub/splash
 ```
 <br>
+
 ## Install requirements
 - Verify you have Python3 installed. If not, install this.
 - Clone the repo and CD into the repo.
@@ -50,7 +51,6 @@ pip3 install scrapy-splash
     ``` http://aac.hatfield.marketing/ ```
 <br>
 
-
 #### Runing script
 We can run this tool several different ways. This is generally ran with the `-O` flag which generates a CSV or JSON file of all the columns provided above. In addition, you can run this without any flags and generate the local URLs list if that is all you need. You can call the crawler with the following names:
 #### Crawler names
@@ -62,9 +62,9 @@ We can run this tool several different ways. This is generally ran with the `-O`
 
 ```
 scrapy crawl standard
-
 ```
 <br>
+
 ##### Run with output file
 Run the command with the `-O` flag indicating we want to generate an output file and supply the name of the outfile. 
 <br>
@@ -77,7 +77,7 @@ JSON output:
 ```
 scrapy crawl standard -O beepboop.json
 ```
-
 <br>
+
 ### List of URLs
 Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs and save then under repo/hmscraper/SITE-links.txt. 
