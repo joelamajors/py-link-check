@@ -5,8 +5,11 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
-check_url = "https://mister-medicare.hatfield.marketing/"
-check_url = check_url.strip("/")
+base_url = "https://kentuckianareporters.hatfield.marketing/"
+base_url = base_url.strip("/")
+
+
+check_url = base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
 # Storing urls for pages we've found to dump into a text file
 url_set = set()
@@ -21,8 +24,7 @@ class HMScraper(scrapy.Spider):
 
     name = "standard"
     start_urls = []
-    start_urls.append(check_url)
-    check_url = check_url.replace("http://", '').replace("https://", '').split("/")[0]
+    start_urls.append(base_url)
     allowed_domains = [check_url]
     deny = ["r/^mailto:/", "/^tel:/"]
 
@@ -30,65 +32,79 @@ class HMScraper(scrapy.Spider):
         Rule(LinkExtractor(allow=(), deny=("r/^mailto:/", "r/^tel:/"))),
     ]
 
+
     def parse(self, response):
         for link in response.css('a::attr(href)').getall():
-            if "mailto:" in link or "tel:" in link:
+            
+            page_response_code = response.status
 
-                yield {
-                    "Page": response.request.url,
-                    "Link": link,
-                    "Local/External": "N/A",
-                    "Mailto/Phone": True,
-                    "Response": response.status,
-                }
+            # If the link has mailto or tel, don't process since this will fail. Call page_dump_null
+            if "mailto:" in link or "tel:" in link:
+                yield from self.page_dump_null(response.urljoin(link), response.status, link, "Mailto/Tel")
 
             else:
-                url_set.add(str(response.request.url))
-                # Using meta to access request URL. 
-                yield SplashRequest(response.urljoin(link), callback=self.parse_data, meta={'original_url': link})
+                # Send all links to parse_data function
+                yield SplashRequest(response.urljoin(link), callback=self.parse_data, args={'wait': 0.5}, meta={'original_url': link, 'original_url_response_code': page_response_code})
 
     def parse_data(self, response):
-        
+
+        page_response_code = response.status
+        page_url = response.meta["original_url"]
+
+
         links = response.css('a::attr(href)').getall()
 
         for link in links:
 
-            # If local link or starts with /
-            if check_url in link or link.startswith("/"):
-                page_type = "Local"
+            # If mailto or tel in link
+            # else if the link is local
+            # else - the URL is an external link
+            if "mailto:" in link or "tel:" in link:
+                link_type = "Mailto/Tel"
+                yield from self.page_dump_null(page_url, page_response_code, link, link_type)
+
+            elif check_url in link or link.startswith("/"): 
+
+                link_type = "Local"
 
                 if link.startswith("/"):
-                    link = check_url+link
+                    link = base_url+link
+
+                # Adding local URL to URL set, which gets dumped into a text file at the end.
+                # This is used to run local links through the additinoal scripts
+                url_set.add(str(link))
 
             else:
-                page_type = "External"
+                link_type = "External"
 
-                # Getting mailto / tel links
-                if "mailto:" in link or "tel:" in link:
-                    mail_tel = True
-                    page_type = "N/A"
-                else:
-                    mail_tel = False
+            # Dumping output
 
-                # Logging response code
-                print(response)
-                status_code = response.status
+            # Cleaning up page URL since Splash adds the port at the end of the URL
+            if response.meta['original_url'].startswith('/'):
+                page_url = base_url+response.meta['original_url']
 
-                # Get Page Info with meta. Adjusting relative URL path
-                if response.meta['original_url'].startswith('/'):
-                    page = check_url+response.meta['original_url']
-                else:
-                    page = response.meta['original_url']
+                
+            yield {
+                "Page": page_url,
+                "Page Response": page_response_code,
+                "Link": link,
+                "Link Type": link_type,
+                "Link Response": response.status,
+            }
+                
 
-                url_set.add(str(page))
+    def page_dump_null(self, page_url, page_response_code, link, link_type):
 
-                yield {
-                    "Page": page,
-                    "Link": response.urljoin(link),
-                    "Local/External": page_type,
-                    "Mailto/Phone": mail_tel,
-                    "Response": status_code,
-                }
+        # SplashRequest appends the port number at the end on original request. Removing these if detected. 
+        page_url = page_url.replace(":443","").replace(":80","").strip("/")
+
+        yield {
+            "Page": page_url,
+            "Page Response": page_response_code,
+            "Link": link,
+            "Link Type": link_type,
+            "Link Response": "N/A",
+        }
 
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
