@@ -1,48 +1,74 @@
+# Py-link-check
+
 This crawler uses Python Scrapy and Splash to crawl websites with dynamic content and test every link on each page and dumps a report of the following:
-- text file of all local urls
-- if the `-O` flag is used - a report of the page, links found, local/external, mailto/tel and reponse code will be output to a CSV or JSON file.
+- text file of all local urls (which can be used for other tools like page-reporter, lorem-ipsum checker, etc.)
 
+If the `-O` is used, this will trigger an output file of the crawler results. The following columns will be generated:
+```
+            "Page": Page,
+            "Page Response": Page response code,
+            "Link": Link found on the page,
+            "Link Type": Link type (Internal, External or Mailto/Tel)
+            "Link Response": Link Response Code ("N/A" if the link type is "Mailto/Tel")
+```
+
+There's currently two crawlers in this package. Once is for standard URLs (hm_standard) and another is for blog URLs in twill (hm_blog). The crawlers are located under `hmcraper/hmscraper/spiders` and are called:
+```
+hm_blog
+hm_standard
+
+```
+<br>
 ## Setup Scrapy
+This tool uses Splash to act as a proxy to render dynamic pages in a browser. Fortunately Splash can be setup with docker using only 2 lines.
 
-If this is the first time you're running this tool, you'll need to pull the image. Run the following command in a terminal window.
-
+If this is the first time you're running this tool, you'll need to pull the image. If you've already ran this tool before - you do not need to pull it and can move to the next step.   Pull the docker image by running this in terminal:
 ```
 docker pull scrapinghub/splash
 ```
-
-Now we need to run the docker image:
-
+Next we need to run the docker image with the following command:
 ```
 docker run -it -p 8050:8050 --rm scrapinghub/splash
 ```
-
+<br>
 ## Install requirements
 - Verify you have Python3 installed. If not, install this.
 - Clone the repo and CD into the repo.
-- Install the following modules by running these commands in our terminal 
-
-
+- Install the following modules by running these commands in our terminal:
 ``` 
 pip3 install scrapy
 pip3 install scrapy-splash
 ```
-
+<br>
 
 ## To run:
-- Change into the `py-link-check/hmscraper` directory
-- Open the ```hm_standard.py``` (py-link-check\hmscraper\hmscraper\spiders\hm_standard.py). Change the URL to match the one you need to test. 
 
-Now we can run the spider. We can run this one of two ways:
+#### Setup URL in script
+- Open the file of the spider your about to use (hm_blog or hm_standard).
+- Change the URL variable to be the base url for the site.
+	- For example:
+    ``` http://aac.hatfield.marketing/ ```
+<br>
 
-### Run with no output file
-No parameters are needed. 
+
+#### Runing script
+We can run this tool several different ways. This is generally ran with the `-O` flag which generates a CSV or JSON file of all the columns provided above. In addition, you can run this without any flags and generate the local URLs list if that is all you need. You can call the crawler with the following names:
+#### Crawler names
+- standard - standard URL crawler
+- hmblog_twill - crawler for hmtwill blogs 
+<br>
+
+##### Run with no output file
+
 ```
 scrapy crawl standard
-```
 
-### Run with output file
-We run the command with the `-O` flag indicating we want to generate an output file. Next, supply the name of the outfile. For example:  
-CSV output:  
+```
+<br>
+##### Run with output file
+Run the command with the `-O` flag indicating we want to generate an output file and supply the name of the outfile. 
+<br>
+CSV output:
 ```
 scrapy crawl standard -O beepboop.csv
 ```
@@ -52,7 +78,6 @@ JSON output:
 scrapy crawl standard -O beepboop.json
 ```
 
-Make sure you're in the hmscraper directory. Otherwise you'll get an error. 
-
-## Reports
-The list of URLs are saved under repo/hmscraper/SITE-links.txt. The report generated with the `-O` flag will be saved in the same directory with the name you've provided.
+<br>
+### List of URLs
+Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs and save then under repo/hmscraper/SITE-links.txt. 
