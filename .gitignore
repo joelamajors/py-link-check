@@ -179,3 +179,13 @@ dmypy.json
  
 # Cython debug symbols
 cython_debug/
+
+hmscraper/hmscraper/*.txt
+hmscraper/hmscraper/*.csv
+hmscraper/*.csv
+hmscraper/*.txt
+
+hmscraper/hmscraper/*.txt#
+hmscraper/hmscraper/*.csv#
+hmscraper/*.csv#
+hmscraper/*.txt#
