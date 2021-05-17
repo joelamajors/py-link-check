@@ -2,6 +2,7 @@
 
 This crawler uses Python Scrapy and Splash to crawl websites with dynamic content and test every link on each page and dumps a report of the following:
 - text file of all local urls (which can be used for other tools like page-reporter, lorem-ipsum checker, etc.)
+- text file of all of urls that have lorem ipsum (`site-lorem-check.txt`)
 
 If the `-O` is used, this will trigger an output file of the crawler results. The following columns will be generated:
 ```
@@ -94,4 +95,4 @@ etc...
 <br>
 
 ### List of URLs
-Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs and save then under repo/hmscraper/SITE-links.txt. 
+Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs & the lorem ipsum text files (if detected) and save then under repo/hmscraper/... 
