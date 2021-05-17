@@ -45,7 +45,9 @@ creds.js
 __pycache__/
 *.py[cod]
 *$py.class
- 
+*.pyc
+
+
 # C extensions
 *.so
  
@@ -189,3 +191,7 @@ hmscraper/hmscraper/*.txt#
 hmscraper/hmscraper/*.csv#
 hmscraper/*.csv#
 hmscraper/*.txt#
+
+
+# Created by https://www.toptal.com/developers/gitignore/api/python
+# Edit at https://www.toptal.com/developers/gitignore?templates=python

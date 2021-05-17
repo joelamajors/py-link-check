@@ -79,5 +79,19 @@ scrapy crawl standard -O beepboop.json
 ```
 <br>
 
+##### Run with no output to terminal
+Run the spider with the `-L WARN` flag and parameter. Additional parameters can be found in Scrapy documentation.
+<br>
+
+```
+scrapy crawl SPIDER_NAME -L WARN
+
+scrapy crawl SPIDER_NAME -O beepboop.csv -L WARN
+
+etc...
+```
+
+<br>
+
 ### List of URLs
 Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs and save then under repo/hmscraper/SITE-links.txt. 
