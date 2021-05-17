@@ -5,7 +5,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
-base_url = "https://thermex-twill.hatfield.marketing/"
+base_url = "http://aac.hatfield.marketing/"
 base_url = base_url.strip("/")
 
 
@@ -17,13 +17,15 @@ url_set = set()
 links = []
 pages = []
 
-lorem_string = "Lorem ipsum dolor amet consectetur adipiscing elit sed eiusmod tempor incididunt ut labore dolore magna aliqua Ut enim minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ea commodo consequat Duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur Excepteur sint occaecat cupidatat proident sunt culpa qui officia deserunt mollit anim laborum".split()
+lorem_string = "Lorem ipsum dolor amet consectetur adipiscing elit eiusmod tempor incididunt labore dolore magna aliqua enim minim veniam quis nostrud exercitation ullamco laboris nisi aliquip commodo consequat Duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur Excepteur sint occaecat cupidatat proident culpa officia deserunt mollit laborum".split()
 
 lorem = set()
 
 for w in lorem_string:
     lorem.add(" " + w + " ")
 
+# Adding 'lorem ' incase text starts with lorem
+lorem.add("lorem ")
 lorem_url_set = set()
 
 class HMScraper(scrapy.Spider):
@@ -41,7 +43,7 @@ class HMScraper(scrapy.Spider):
     deny = ["r/^mailto:/", "/^tel:/"]
 
     rules = [
-        Rule(LinkExtractor(allow=(), deny=("r/^mailto:/", "r/^tel:/"))),
+        Rule(LinkExtractor(), callback='parse_data', follow=True),
     ]
 
     def parse(self, response):
@@ -59,9 +61,12 @@ class HMScraper(scrapy.Spider):
     def parse_data(self, response):
 
         page_response_code = response.status
-        page_url = response.meta["original_url"]
-
+        page_url = response.url
         links = response.css('a::attr(href)').getall()
+
+        link_text = response.xpath('//div[@id="app"]//text()').extract()
+        link_string = str(link_text)
+
 
         for link in links:
 
@@ -79,14 +84,6 @@ class HMScraper(scrapy.Spider):
                 if link.startswith("/"):
                     link = base_url+link
 
-                link_text = response.xpath('//div[@id="app"]//text()').extract()
-
-                link_string = str(link_text)
-
-                for l in lorem:
-                    if l in link_string:
-                        lorem_url_set.add(link)
-
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 # This is used to run local links through the additinoal scripts
                 url_set.add(str(link))
@@ -94,13 +91,13 @@ class HMScraper(scrapy.Spider):
             else:
                 link_type = "External"
 
-            # Dumping output
-
             # Cleaning up page URL since Splash adds the port at the end of the URL
-            if response.meta['original_url'].startswith('/'):
+            if page_url.startswith('/'):
                 page_url = base_url+response.meta['original_url']
-
-
+            
+            page_url = page_url.replace(":443","").replace(":80","").strip("/")
+            
+            # Dumping output
             yield {
                 "Page": page_url,
                 "Page Response": page_response_code,
@@ -108,6 +105,13 @@ class HMScraper(scrapy.Spider):
                 "Link Type": link_type,
                 "Link Response": response.status,
             }
+        
+        # Lorem Ipsum Checker
+        for l in lorem:
+            if l in link_string:
+                print(f'Found {l} in {page_url}')
+                lorem_url_set.add(page_url)
+                break
 
     def page_dump_null(self, page_url, page_response_code, link, link_type):
 
@@ -124,12 +128,16 @@ class HMScraper(scrapy.Spider):
 
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
+
         # File name
         name = check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
-        # Writing URLs to txt file as name of site
+        # Writing local URLs to txt file as name of site
         f = open(name[0] + "-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))
+        f.close()
 
-        lf = open(name[0] + "-lorem-check.txt", 'w+')
-        lf.write('\n'.join(map(str, lorem_url_set)))
+        # Conditional for URLs that contain lorem ipsum.
+        if lorem_url_set:
+            lf = open(name[0] + "-lorem-check.txt", 'w+')
+            lf.write('\n'.join(map(str, lorem_url_set)))
