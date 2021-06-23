@@ -3,9 +3,12 @@ from scrapy import signals
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
+import logging
+import base64
+import json
 
 # URL here
-base_url = "http://aac.hatfield.marketing/"
+base_url = "https://raque.hatfield.marketing"
 base_url = base_url.strip("/")
 
 
@@ -30,6 +33,32 @@ lorem_url_set = set()
 
 class HMScraper(scrapy.Spider):
 
+    # Have a lua script here to make our requests. This is needed since we're using SplashRequest to make the request for us, and the splash request.status doesn't return the correct status code we're looking for. 
+    # Referring to https://github.com/scrapy-plugins/scrapy-splash
+    # Need to get the Lua script to return the URL for 
+    lua_script = """
+        function main(splash)
+                assert(splash:go{
+                splash.args.url,
+                headers=splash.args.headers,
+                http_method=splash.args.http_method,
+                body=splash.args.body,
+            })
+
+            assert(splash:wait(0.5))
+            local entries = splash:history()
+            local last_response = entries[#entries].response
+
+            return {
+                url = splash:url(),
+                headers = d.headers,
+                http_status = last_response.status,
+                cookies = splash:get_cookies(),
+                html = splash:html(),
+            }
+        end
+        """
+
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super(HMScraper, cls).from_crawler(crawler, *args, **kwargs)
@@ -47,73 +76,85 @@ class HMScraper(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for link in response.css('a::attr(href)').getall():
 
+        # if response.status == 404:
+        #     yield from self.page_dump_null(response.urljoin(link), response.status, link, "Mailto/Tel", "N/A")
+
+        for link in response.css('a::attr(href)').getall():
+        
             page_response_code = response.status
             # If the link has mailto or tel, don't process since this will fail. Call page_dump_null
             if "mailto:" in link or "tel:" in link:
-                yield from self.page_dump_null(response.urljoin(link), response.status, link, "Mailto/Tel")
+                yield from self.page_dump_null(response.urljoin(link), response.status, link, "Mailto/Tel", "N/A")
 
             else:
                 # Send all links to parse_data function
-                yield SplashRequest(response.urljoin(link), callback=self.parse_data, args={'wait': 0.5}, meta={'original_url': link, 'original_url_response_code': page_response_code})
+                yield SplashRequest(response.urljoin(link), callback=self.parse_data, endpoint='execute', magic_response=True, meta={'handle_httpstatus_all': True, 'original_url': link, 'original_url_response_code': page_response_code}, args={'lua_source': self.lua_script})
 
     def parse_data(self, response):
+
+        # page_response_code = response.meta['original_url_response_code']
+        # page_url = response.meta['original_url']
 
         page_response_code = response.status
         page_url = response.url
         links = response.css('a::attr(href)').getall()
 
+        '''Looks like the variable links is not getting the links on the page.'''
+
+        self.logger.info(f'\n~~~~~~~\n{page_url}: {page_response_code}\n~~~~~~~\n')
+
         link_text = response.xpath('//div[@id="app"]//text()').extract()
         link_string = str(link_text)
-
-
+        
         for link in links:
 
-            # If mailto or tel in link
-            # else if the link is local
-            # else - the URL is an external link
+            # self.logger.info(f'\n~~~~~~~\n{link}\n~~~~~~~\n')
+            # If the link has mailto or tel, don't process since this will fail. Call page_dump_null
             if "mailto:" in link or "tel:" in link:
-                link_type = "Mailto/Tel"
-                yield from self.page_dump_null(page_url, page_response_code, link, link_type)
+                    link_type = "Mailto/Tel"
+                    yield from self.page_dump_null(page_url, page_response_code, link, link_type, "N/A")
+            else:                    
+                yield SplashRequest(response.urljoin(link), callback=self.sub_url, endpoint='execute', magic_response=True, meta={'handle_httpstatus_all': True, 'original_url': link, 'original_url_response_code': page_response_code}, args={'lua_source': self.lua_script})
 
-            elif check_url in link or link.startswith("/"):
+                if check_url in link or link.startswith("/"):
 
-                link_type = "Local"
+                    link_type = "Local"
 
-                if link.startswith("/"):
-                    link = base_url+link
+                    if link.startswith("/"):
+                        link = base_url+link
 
-                # Adding local URL to URL set, which gets dumped into a text file at the end.
-                # This is used to run local links through the additinoal scripts
-                url_set.add(str(link))
+                    # Adding local URL to URL set, which gets dumped into a text file at the end.
+                    # This is used to run local links through the additinoal scripts
+                    url_set.add(str(link))
 
-            else:
-                link_type = "External"
+                else:
+                    link_type = "External"
 
-            # Cleaning up page URL since Splash adds the port at the end of the URL
-            if page_url.startswith('/'):
-                page_url = base_url+response.meta['original_url']
+                # Cleaning up page URL since Splash adds the port at the end of the URL
+                if page_url.startswith('/'):
+                    page_url = base_url+response.meta['original_url']
+                
+                page_url = page_url.replace(":443","").replace(":80","").strip("/")
+                
+                # Dumping output
+                yield {
+                    "Page": page_url,
+                    "Page Response": page_response_code,
+                    "Link": link,
+                    "Link Type": link_type,
+                    "Link Response": response.status,
+                }
             
-            page_url = page_url.replace(":443","").replace(":80","").strip("/")
-            
-            # Dumping output
-            yield {
-                "Page": page_url,
-                "Page Response": page_response_code,
-                "Link": link,
-                "Link Type": link_type,
-                "Link Response": response.status,
-            }
-        
-        # Lorem Ipsum Checker
-        for l in lorem:
-            if l in link_string:
-                print(f'Found {l} in {page_url}')
-                lorem_url_set.add(page_url)
-                break
+            # Lorem Ipsum Checker
+            for l in lorem:
+                if l in link_string:
+                    print(f'Found {l} in {page_url}')
+                    lorem_url_set.add(page_url)
+                    break
 
-    def page_dump_null(self, page_url, page_response_code, link, link_type):
+    # This is called for broken links, tel/mailto links, etc...
+    def page_dump_null(self, page_url, page_response_code, link, link_type, link_response):
 
         # SplashRequest appends the port number at the end on original request. Removing these if detected.
         page_url = page_url.replace(":443","").replace(":80","").strip("/")
@@ -123,8 +164,21 @@ class HMScraper(scrapy.Spider):
             "Page Response": page_response_code,
             "Link": link,
             "Link Type": link_type,
-            "Link Response": "N/A",
+            "Link Response": link_response
         }
+
+
+    # Checks urls on page, calls page_dump_null() for pages that report bad response codes. 
+    def sub_url(self, response):
+        page_url = response.meta['original_url']
+        page_response_code = response.meta['original_url_response_code']
+        response_code = response.status
+        if 200 <= response_code >= 299:
+            pass
+        else:
+            yield from self.page_dump_null(page_url, page_response_code, response.url, 'Link', response.status)
+
+
 
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):

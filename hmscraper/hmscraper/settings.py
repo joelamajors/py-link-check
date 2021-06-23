@@ -12,12 +12,15 @@ BOT_NAME = 'hmscraper'
 SPIDER_MODULES = ['hmscraper.spiders']
 NEWSPIDER_MODULE = 'hmscraper.spiders'
 
+LOG_LEVEL = 'INFO'
 
+# HTTPERROR_ALLOWED_CODES = [404,403]
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'hmscraper (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
+
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
