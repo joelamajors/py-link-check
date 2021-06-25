@@ -5,7 +5,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
-base_url = "http://aac.hatfield.marketing/"
+base_url = "https://louisville-paving.hatfield.marketing/"
 base_url = base_url.strip("/")
 
 
@@ -27,6 +27,7 @@ for w in lorem_string:
 # Adding 'lorem ' incase text starts with lorem
 lorem.add("lorem ")
 lorem_url_set = set()
+
 
 class HMScraper(scrapy.Spider):
 
@@ -67,7 +68,6 @@ class HMScraper(scrapy.Spider):
         link_text = response.xpath('//div[@id="app"]//text()').extract()
         link_string = str(link_text)
 
-
         for link in links:
 
             # If mailto or tel in link
@@ -94,9 +94,9 @@ class HMScraper(scrapy.Spider):
             # Cleaning up page URL since Splash adds the port at the end of the URL
             if page_url.startswith('/'):
                 page_url = base_url+response.meta['original_url']
-            
+
             page_url = page_url.replace(":443","").replace(":80","").strip("/")
-            
+
             # Dumping output
             yield {
                 "Page": page_url,
@@ -105,7 +105,7 @@ class HMScraper(scrapy.Spider):
                 "Link Type": link_type,
                 "Link Response": response.status,
             }
-        
+
         # Lorem Ipsum Checker
         for l in lorem:
             if l in link_string:
