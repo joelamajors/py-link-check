@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = 'hmscraper.spiders'
 
 LOG_LEVEL = 'INFO'
 
-# HTTPERROR_ALLOWED_CODES = [404,403]
+HTTPERROR_ALLOWED_CODES = [404,403]
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'hmscraper (+http://www.yourdomain.com)'
 
@@ -47,9 +47,11 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'hmscraper.middlewares.HmscraperSpiderMiddleware': 543,
-#}
+SPIDER_MIDDLEWARES = {
+    'hmscraper.middlewares.HmscraperSpiderMiddleware': 543,
+    'scrapy.spidermiddlewares.offsite.OffsiteMiddleware': None,
+
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
