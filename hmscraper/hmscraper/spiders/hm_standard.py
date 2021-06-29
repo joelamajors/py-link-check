@@ -1,8 +1,5 @@
 import scrapy
 from scrapy import signals
-# from scrapy.http import headers
-# from scrapy.spiders import CrawlSpider, Rule
-# from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
