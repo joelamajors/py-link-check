@@ -3,7 +3,7 @@ from scrapy import signals
 from scrapy_splash import SplashRequest
 
 # URL here
-base_url = "https://louisville-paving.hatfield.marketing/"
+base_url = "https://raque.hatfield.marketing/"
 
 # Parsing url
 base_url = base_url.strip("/")
@@ -15,13 +15,7 @@ check_url = base_url.replace("http://", '')\
 url_set = set()
 links = []
 pages = []
-lorem_string = '''Lorem ipsum dolor amet consectetur adipiscing elit eiusmod
-                tempor incididunt labore dolore magna aliqua enim minim
-                veniam quis nostrud exercitation ullamco laboris nisi
-                aliquip commodo consequat Duis aute irure dolor reprehenderit
-                voluptate velit esse cillum dolore fugiat nulla pariatur
-                Excepteur sint occaecat cupidatat proident culpa officia
-                deserunt mollit laborum'''.split()
+lorem_string = 'Lorem ipsum dolor amet consectetur adipiscing elit eiusmod tempor incididunt labore dolore magna aliqua enim minim veniam quis nostrud exercitation ullamco laboris nisi aliquip commodo consequat Duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur Excepteur sint occaecat cupidatat proident culpa officia deserunt mollit laborum'.split()
 lorem_set = set()
 
 for word in lorem_string:
@@ -54,9 +48,6 @@ class HMScraper(scrapy.Spider):
     start_urls.append(base_url)
     allowed_domains = [check_url]
     deny = ["r/^mailto:/", "/^tel:/"]
-    # rules = [
-    #     Rule(LinkExtractor(), callback='parse_data', follow=True),
-    # ]
 
     def parse(self, response):
 
@@ -181,11 +172,11 @@ class HMScraper(scrapy.Spider):
                         .split(".")
 
         # Writing local URLs to txt file as name of site
-        f = open(name[0] + "-links.txt", 'w+')
+        f = open(f'{name[0]}-links.txt', 'w+')
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
         # Conditional for URLs that contain lorem ipsum.
         if lorem_url_set:
-            lf = open(name[0] + "-lorem-check.txt", 'w+')
+            lf = open(f'{name[0]}-lorem-check.txt', 'w+')
             lf.write('\n'.join(map(str, lorem_url_set)))
