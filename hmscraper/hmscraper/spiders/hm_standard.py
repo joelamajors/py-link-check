@@ -5,7 +5,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
-base_url = "http://aac.hatfield.marketing/"
+base_url = "https://raque.hatfield.marketing/"
 base_url = base_url.strip("/")
 
 

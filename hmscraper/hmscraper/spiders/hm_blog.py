@@ -1,12 +1,16 @@
 import scrapy
 import json
+import re
 from scrapy import signals
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
 # URL here
-base_url = "https://aac.hatfield.marketing"
+base_url = "https://cubbank.hatfield.marketing/news-stories"
+
+parsed_base_url = re.search('.*(/.*/(.*)/)', base_url)
+parsed_base_url = parsed_base_url.group(0).strip("/")
 
 base_url = base_url.strip("/")
 
@@ -31,11 +35,11 @@ class HmblogSpider(scrapy.Spider):
     ]
 
     name = 'hmblog_twill'
-    start_urls = [f'{base_url}/blog?all-page=1']
+    start_urls = [f'{base_url}?all-page=1']
     headers = {
         "Accept": "application/json, text/plain, */*",
         "Authorization":"null null",
-        "Referer": f'{base_url}/blog',
+        "Referer": f'{base_url}',
         "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
         "sec-ch-ua-mobile": "?0",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
@@ -44,8 +48,9 @@ class HmblogSpider(scrapy.Spider):
 
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
-        url = f'{base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date'
-        request = scrapy.Request(url, callback=self.parse_api, headers=self.headers)
+        url = f'{parsed_base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date&locale=en'
+
+        request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
         yield request
 
     # Getting blog pages from API
@@ -60,19 +65,19 @@ class HmblogSpider(scrapy.Spider):
 
         # Extract blog_urls from each blog that's loaded
         for blog in blog_data:
-            blog_url = base_url + blog["full_slug"]
+            blog_url = parsed_base_url + blog["full_slug"]
             blog_urls.add(str(blog_url))
 
         # If the blog page has more content to load
         if data["next_page_url"]:
             url = data["next_page_url"]
-            request = scrapy.Request(url, callback=self.parse_api, headers=self.headers)
+            request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
             yield request
         else: 
             for url in blog_urls:
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
-                url_set.add(str(link))
-                yield SplashRequest(url, callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
+                url_set.add(str(url))
+                yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
     # Go through links on blog pages, then parses dump of logs
@@ -91,12 +96,14 @@ class HmblogSpider(scrapy.Spider):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = base_url+link
+                        link = parsed_base_url+link
 
                 else:
                     link_type = "External"
+                
+                # print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{link}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
-                yield scrapy.Request(link, callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
 
     # Dumping all of the data
