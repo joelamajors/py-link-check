@@ -1,14 +1,18 @@
 import scrapy
 from scrapy import signals
+from scrapy import spiders
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
-# URL here
-base_url = "https://jeffbaxter.tech/"
-base_url = base_url.strip("/")
+''' 
+This generates the following
+- CSV with all respose codes
+- txt file with all of the internal pages
+- If found, a txt file will be created with links that contain lorem ipsum. 
 
-check_url = base_url.replace("http://", '').replace("https://", '').split("/")[0]
+'''
+
 
 # Storing urls for pages we've found to dump into a text file
 url_set = set()
@@ -27,25 +31,41 @@ for w in lorem_string:
 lorem.add("lorem ")
 lorem_url_set = set()
 
-class HMScraper(scrapy.Spider):
+
+class scraperAWS(scrapy.Spider):
+
+    name = "standard"    
+
+
+    def __init__(self, *args, **kwargs):
+        self.url = kwargs.get('url') 
+        
+        self.start_urls = self.url
+
+        self.base_url = self.url
+        self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
+
+        super(scraperAWS, self).__init__(*args, **kwargs)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
-        spider = super(HMScraper, cls).from_crawler(crawler, *args, **kwargs)
+        spider = super(scraperAWS, cls).from_crawler(crawler, *args, **kwargs)
         crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
         return spider
 
-    name = "standard"
-    start_urls = []
-    start_urls.append(base_url)
-    allowed_domains = [check_url]
     deny = ["r/^mailto:/", "/^tel:/"]
 
     rules = [
         Rule(LinkExtractor(), callback='parse_data', follow=True),
     ]
 
+    def start_requests(self):
+    
+        # Call back, goes to parse function
+        yield scrapy.Request(self.start_urls, callback=self.parse)
+
     def parse(self, response):
+
         for link in response.css('a::attr(href)').getall():
 
             page_response_code = response.status
@@ -76,12 +96,12 @@ class HMScraper(scrapy.Spider):
                 link_type = "Mailto/Tel"
                 yield from self.page_dump_null(page_url, page_response_code, link, link_type)
 
-            elif check_url in link or link.startswith("/"):
+            elif self.check_url in link or link.startswith("/"):
 
                 link_type = "Local"
 
                 if link.startswith("/"):
-                    link = base_url+link
+                    link = self.base_url+link
 
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 # This is used to run local links through the additinoal scripts
@@ -92,7 +112,7 @@ class HMScraper(scrapy.Spider):
 
             # Cleaning up page URL since Splash adds the port at the end of the URL
             if page_url.startswith('/'):
-                page_url = base_url+response.meta['original_url']
+                page_url = self.base_url+response.meta['original_url']
             
             page_url = page_url.replace(":443","").replace(":80","").strip("/")
             
@@ -113,7 +133,6 @@ class HMScraper(scrapy.Spider):
                 break
 
     def page_dump_null(self, page_url, page_response_code, link, link_type):
-
         # SplashRequest appends the port number at the end on original request. Removing these if detected.
         page_url = page_url.replace(":443","").replace(":80","").strip("/")
 
@@ -129,14 +148,14 @@ class HMScraper(scrapy.Spider):
     def spider_closed(self, spider):
 
         # File name
-        name = check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
         # Writing local URLs to txt file as name of site
-        f = open(name[0] + "-links.txt", 'w+')
+        f = open("./reports/"+name[0] + "-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
         # Conditional for URLs that contain lorem ipsum.
         if lorem_url_set:
-            lf = open(name[0] + "-lorem-check.txt", 'w+')
+            lf = open("./reports/"+name[0] + "-lorem-check.txt", 'w+')
             lf.write('\n'.join(map(str, lorem_url_set)))

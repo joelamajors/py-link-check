@@ -5,8 +5,15 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
-# To run, 
-# scrapy crawl aws-standard -a start_url="http://some_url"
+'''
+This is used to run screenshots tests from AWS via the lambdatest instance. 
+
+This generates the following
+- CSV with all respose codes
+- txt file with all of the internal pages
+- If found, a txt file will be created with links that contain lorem ipsum. 
+
+'''
 
 # Storing urls for pages we've found to dump into a text file
 url_set = set()
@@ -145,11 +152,11 @@ class scraperAWS(scrapy.Spider):
         name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
         # Writing local URLs to txt file as name of site
-        f = open(name[0] + "-links.txt", 'w+')
+        f = open("./logs/"+name[0] + "-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
         # Conditional for URLs that contain lorem ipsum.
         if lorem_url_set:
-            lf = open(name[0] + "-lorem-check.txt", 'w+')
+            lf = open("./logs/"+name[0] + "-lorem-check.txt", 'w+')
             lf.write('\n'.join(map(str, lorem_url_set)))

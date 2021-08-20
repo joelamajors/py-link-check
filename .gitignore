@@ -36,17 +36,14 @@ creds.js
 *.tsv.gz
 *.xlsx
 
-
 # Mac/OSX
 .DS_Store
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
-
 
 # C extensions
 *.so
@@ -192,8 +189,9 @@ hmscraper/hmscraper/*.csv#
 hmscraper/*.csv#
 hmscraper/*.txt#
 
-
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
 archived-results/
+
+reports/
