@@ -195,3 +195,5 @@ hmscraper/*.txt#
 archived-results/
 
 reports/
+logs/
+lorem/

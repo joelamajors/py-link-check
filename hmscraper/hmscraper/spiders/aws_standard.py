@@ -4,15 +4,17 @@ from scrapy import spiders
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
+import json
+from json import JSONEncoder
+import os
+import datetime
 
 '''
 This is used to run screenshots tests from AWS via the lambdatest instance. 
-
 This generates the following
 - CSV with all respose codes
 - txt file with all of the internal pages
 - If found, a txt file will be created with links that contain lorem ipsum. 
-
 '''
 
 # Storing urls for pages we've found to dump into a text file
@@ -36,7 +38,6 @@ lorem_url_set = set()
 class scraperAWS(scrapy.Spider):
 
     name = "aws-standard"    
-
 
     def __init__(self, *args, **kwargs):
         self.url = kwargs.get('url') 
@@ -148,15 +149,37 @@ class scraperAWS(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
 
+        # Generate date for report files
+        x = datetime.datetime.now()
+        d = x.strftime('%m-%d-%y')
+
+        if not os.path.exists('./logs'):
+            os.makedirs('./logs')
+
+        if not os.path.exists('./reports'):
+            os.makedirs('./reports')
+
+        if not os.path.exists('./lorem'):
+            os.makedirs('./lorem')
+        
         # File name
         name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
+        # Used to encode set to JSON
+        class setEncoder(JSONEncoder):
+                def default(self, obj):
+                    return list(obj)
+
+        # Writing urls to JSON
+        with open("./logs/"+d+"_"+name[0]+'-links.json','w+') as file:
+            file.write(json.dumps({'urls': url_set}, cls=setEncoder))
+
         # Writing local URLs to txt file as name of site
-        f = open("./logs/"+name[0] + "-links.txt", 'w+')
+        f = open("./logs/"+d+"_"+name[0]+"-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
         # Conditional for URLs that contain lorem ipsum.
         if lorem_url_set:
-            lf = open("./logs/"+name[0] + "-lorem-check.txt", 'w+')
+            lf = open("./logs/"+d+"_"+name[0]+"-lorem-check.txt", 'w+')
             lf.write('\n'.join(map(str, lorem_url_set)))
