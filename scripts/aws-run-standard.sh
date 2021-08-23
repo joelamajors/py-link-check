@@ -23,7 +23,7 @@ if [ ! "$(sudo docker ps -q -f name=splash)" ]; then
 else
         echo "Docker image is running!"
 fi
-NOW=$(date +"%m-%d-%Y")
+NOW=$(date +"%m-%d-%y")
 
 # Now loop through the urls and run the script
 jq -c -r '.urls[]' urls.json | while read i; do
