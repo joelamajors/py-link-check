@@ -151,7 +151,6 @@ class scraperAWS(scrapy.Spider):
     def spider_closed(self, spider):
 
         client = boto3.client('s3')
-    
 
         # Generate date for report files
         x = datetime.datetime.now()
@@ -168,6 +167,11 @@ class scraperAWS(scrapy.Spider):
         
         # File name
         name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+
+        txt_file_name = "./logs/"+d+"_"+name[0]+"-lorem-check.txt"
+        json_file_name = "./logs/"+d+"_"+name[0]+"-lorem-check.json"
+        csv_file_name = "./reports/"+d+"_"+name[0]+".csv"
+        lorem_file_name = "./lorem/"+d+"_"+name[0]+"-lorem-check.txt"
 
         # Used to encode set to JSON
         class setEncoder(JSONEncoder):
@@ -190,11 +194,10 @@ class scraperAWS(scrapy.Spider):
             lf.write('\n'.join(map(str, lorem_url_set)))
 
             # If lorem ipsum, upload to S3 bucket
-            client.upload_file('./lorem/*', 'daily-link-check', "./lorem/"+d+"_"+name[0]+"-lorem-check.txt")
+            client.upload_file(lorem_file_name, 'daily-link-check', "lorem/"+d+"_"+name[0]+"-lorem-check.txt")
 
         # Copy files to S3
-        client.upload_file('./logs/*', 'daily-link-check', "./logs/"+d+"_"+name[0]+"-lorem-check.txt")
-        client.upload_file('./logs/*', 'daily-link-check', "./logs/"+d+"_"+name[0]+"-lorem-check.json")
-        client.upload_file('./reports/*', 'daily-link-check', "./reports/"+d+"_"+name[0]+"-lorem-check.txt")
+        client.upload_file(txt_file_name, 'daily-link-check', "logs/"+d+"_"+name[0]+"-links.txt")
+        client.upload_file(json_file_name, 'daily-link-check', "logs/"+d+"_"+name[0]+"-links.json")
+        client.upload_file(csv_file_name, 'daily-link-check', "reports/"+d+"_"+name[0]+"-lorem-check.txt")
 
-        
