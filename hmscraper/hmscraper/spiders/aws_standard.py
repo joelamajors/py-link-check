@@ -198,5 +198,5 @@ class scraperAWS(scrapy.Spider):
         # Copy files to S3
         client.upload_file(txt_file_name, 'daily-link-check', "logs/"+d+"_"+name[0]+"-links.txt")
         client.upload_file(json_file_name, 'daily-link-check', "logs/"+d+"_"+name[0]+"-links.json")
-        client.upload_file(csv_file_name, 'daily-link-check', "reports/"+d+"_"+name[0]+"-lorem-check.txt")
+        client.upload_file(csv_file_name, 'daily-link-check', "reports/"+d+"_"+name[0]+"-lorem-check.csv")
 
