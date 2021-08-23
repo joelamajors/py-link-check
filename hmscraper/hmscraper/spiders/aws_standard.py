@@ -8,6 +8,7 @@ import json
 from json import JSONEncoder
 import os
 import datetime
+import boto3
 
 '''
 This is used to run screenshots tests from AWS via the lambdatest instance. 
@@ -149,6 +150,9 @@ class scraperAWS(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
 
+        client = boto3.client('s3')
+    
+
         # Generate date for report files
         x = datetime.datetime.now()
         d = x.strftime('%m-%d-%y')
@@ -174,6 +178,7 @@ class scraperAWS(scrapy.Spider):
         with open("./logs/"+d+"_"+name[0]+'-links.json','w+') as file:
             file.write(json.dumps({'urls': url_set}, cls=setEncoder))
 
+
         # Writing local URLs to txt file as name of site
         f = open("./logs/"+d+"_"+name[0]+"-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))
@@ -183,3 +188,13 @@ class scraperAWS(scrapy.Spider):
         if lorem_url_set:
             lf = open("./logs/"+d+"_"+name[0]+"-lorem-check.txt", 'w+')
             lf.write('\n'.join(map(str, lorem_url_set)))
+
+            # If lorem ipsum, upload to S3 bucket
+            client.upload_file('./lorem/*', 'daily-link-check', "./lorem/"+d+"_"+name[0]+"-lorem-check.txt")
+
+        # Copy files to S3
+        client.upload_file('./logs/*', 'daily-link-check', "./logs/"+d+"_"+name[0]+"-lorem-check.txt")
+        client.upload_file('./logs/*', 'daily-link-check', "./logs/"+d+"_"+name[0]+"-lorem-check.json")
+        client.upload_file('./reports/*', 'daily-link-check', "./reports/"+d+"_"+name[0]+"-lorem-check.txt")
+
+        
