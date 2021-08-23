@@ -28,7 +28,7 @@ NOW=$(date +"%m-%d-%Y")
 # Now loop through the urls and run the script
 jq -c -r '.urls[]' urls.json | while read i; do
     name=$(echo $i |  awk -F[/:] '{print $4}' | cut -f1 -d".")
-    scrapy crawl standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
+    scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
 done
 
 # Add additional logic for when a page has a 404 status code
