@@ -168,8 +168,8 @@ class scraperAWS(scrapy.Spider):
         # File name
         name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
-        txt_file_name = "./logs/"+d+"_"+name[0]+"-lorem-check.txt"
-        json_file_name = "./logs/"+d+"_"+name[0]+"-lorem-check.json"
+        txt_file_name = "./logs/"+d+"_"+name[0]+"-links.txt"
+        json_file_name = "./logs/"+d+"_"+name[0]+"-links.json"
         csv_file_name = "./reports/"+d+"_"+name[0]+".csv"
         lorem_file_name = "./lorem/"+d+"_"+name[0]+"-lorem-check.txt"
 
