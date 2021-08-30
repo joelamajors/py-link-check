@@ -176,8 +176,8 @@ class scraperAWS(scrapy.Spider):
 
         # Used to encode set to JSON
         class setEncoder(JSONEncoder):
-                def default(self, obj):
-                    return list(obj)
+            def default(self, obj):
+                return list(obj)
 
         # Writing urls to JSON
         with open(json_file_name,'w+') as file:
