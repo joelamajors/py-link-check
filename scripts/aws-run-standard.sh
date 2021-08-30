@@ -23,12 +23,21 @@ if [ ! "$(sudo docker ps -q -f name=splash)" ]; then
 else
         echo "Docker image is running!"
 fi
+
 NOW=$(date +"%m-%d-%y")
+
+MONTH=$("$b")
+
+# If the month folder is not created, create this and the sub folders
+if  [ ! $(aws s3 ls s3://daily-link-check/"$MONTH" | head) ]
+then
+    aws s3api put-object --bucket daily-link-check --key "$MONTH"/reports/
+    aws s3api put-object --bucket daily-link-check --key "$MONTH"/links/
+    aws s3api put-object --bucket daily-link-check --key "$MONTH"/lorem/
+fi
 
 # Now loop through the urls and run the script
 jq -c -r '.urls[]' urls.json | while read i; do
     name=$(echo $i |  awk -F[/:] '{print $4}' | cut -f1 -d".")
     scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
 done
-
-# Add additional logic for when a page has a 404 status code
