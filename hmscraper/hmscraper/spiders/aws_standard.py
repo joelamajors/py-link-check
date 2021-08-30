@@ -155,6 +155,7 @@ class scraperAWS(scrapy.Spider):
         # Generate date for report files
         x = datetime.datetime.now()
         d = x.strftime('%m-%d-%y')
+        m = x.strftime('%b')
 
         # Files should be created. But if not, then create them
         if not os.path.exists('./links'):
@@ -194,10 +195,10 @@ class scraperAWS(scrapy.Spider):
             lf.write('\n'.join(map(str, lorem_url_set)))
 
             # If lorem ipsum, upload to S3 bucket
-            client.upload_file(lorem_file_name, 'daily-link-check', "lorem/"+d+"_"+name[0]+"-lorem-check.txt")
+            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+name[0]+"-lorem-check.txt")
 
         # Copy files to S3
-        client.upload_file(txt_file_name, 'daily-link-check', "links/"+d+"_"+name[0]+"-links.txt")
-        client.upload_file(json_file_name, 'daily-link-check', "links/"+d+"_"+name[0]+"-links.json")
-        client.upload_file(csv_file_name, 'daily-link-check', "reports/"+d+"_"+name[0]+"-lorem-check.csv")
+        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_"+name[0]+"-links.txt")
+        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_"+name[0]+"-links.json")
+        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_"+name[0]+"-lorem-check.csv")
 
