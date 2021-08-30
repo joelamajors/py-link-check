@@ -26,11 +26,14 @@ fi
 
 NOW=$(date +"%m-%d-%y")
 
-MONTH=$("$b")
+MONTH=$(date +"%b")
+
+# Running command to check to see if the month folder has been created
+aws s3 ls s3://daily-link-check/"$MONTH"
 
 # If the month folder is not created, create this and the sub folders
-if  [ ! $(aws s3 ls s3://daily-link-check/"$MONTH" | head) ]
-then
+if  [[ $? -ne 0 ]]; then
+
     aws s3api put-object --bucket daily-link-check --key "$MONTH"/reports/
     aws s3api put-object --bucket daily-link-check --key "$MONTH"/links/
     aws s3api put-object --bucket daily-link-check --key "$MONTH"/lorem/
@@ -39,5 +42,6 @@ fi
 # Now loop through the urls and run the script
 jq -c -r '.urls[]' urls.json | while read i; do
     name=$(echo $i |  awk -F[/:] '{print $4}' | cut -f1 -d".")
+    echo "scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv"
     scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
 done
