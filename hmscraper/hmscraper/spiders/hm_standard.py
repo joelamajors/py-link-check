@@ -42,7 +42,7 @@ class scraperAWS(scrapy.Spider):
         
         self.start_urls = self.url
 
-        self.base_url = self.url
+        self.base_url = self.url.strip('/')
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
         super(scraperAWS, self).__init__(*args, **kwargs)
@@ -112,7 +112,7 @@ class scraperAWS(scrapy.Spider):
 
             # Cleaning up page URL since Splash adds the port at the end of the URL
             if page_url.startswith('/'):
-                page_url = self.base_url+response.meta['original_url']
+                page_url = self.base_url+response.meta['original_url'].strip('/')
             
             page_url = page_url.replace(":443","").replace(":80","").strip("/")
             

@@ -10,6 +10,7 @@ import os
 import datetime
 import boto3
 
+
 '''
 This is used to run screenshots tests from AWS via the lambdatest instance. 
 This generates the following
@@ -109,7 +110,7 @@ class scraperAWS(scrapy.Spider):
 
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 # This is used to run local links through the additinoal scripts
-                url_set.add(str(link))
+                url_set.add(str(link.strip()))
 
             else:
                 link_type = "External"
@@ -152,9 +153,6 @@ class scraperAWS(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
 
-        for t in url_set:
-            print(t)
-
         client = boto3.client('s3')
 
         # Generate date for report files
@@ -173,12 +171,13 @@ class scraperAWS(scrapy.Spider):
             os.makedirs('./lorem')
         
         # File name
-        name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        file_name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
 
-        txt_file_name = "./links/"+d+"_"+name[0]+"-links.txt"
-        json_file_name = "./links/"+d+"_"+name[0]+"-links.json"
-        csv_file_name = "./reports/"+d+"_"+name[0]+".csv"
-        lorem_file_name = "./lorem/"+d+"_"+name[0]+"-lorem-check.txt"
+        # File paths for local EC2 instance
+        txt_file_name = str("./links/"+d+"_"+file_name[0]+"-links.txt")
+        json_file_name = str("./links/"+d+"_"+file_name[0]+"-links.json")
+        csv_file_name = str("./reports/"+d+"_"+file_name[0]+".csv")
+        lorem_file_name = str("./lorem/"+d+"_"+file_name[0]+"-lorem-check.txt")
 
         # Used to encode set to JSON
         class setEncoder(JSONEncoder):
@@ -200,10 +199,10 @@ class scraperAWS(scrapy.Spider):
             lf.write('\n'.join(map(str, lorem_url_set)))
 
             # If lorem ipsum, upload to S3 bucket
-            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+name[0]+"-lorem-check.txt")
+            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+file_name[0]+"-lorem-check.txt")
 
         # Copy files to S3
-        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_"+name[0]+"-links.txt")
-        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_"+name[0]+"-links.json")
-        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_"+name[0]+"-lorem-check.csv")
+        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name[0]+"-links.txt")
+        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name[0]+"-links.json")
+        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_"+file_name[0]+"-lorem-check.csv")
 

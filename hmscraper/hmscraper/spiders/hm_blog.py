@@ -6,23 +6,52 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy_splash import SplashRequest
 
-# URL here
-base_url = "https://cubbank.hatfield.marketing/news-stories"
-
-parsed_base_url = re.search('.*(/.*/(.*)/)', base_url)
-parsed_base_url = parsed_base_url.group(0).strip("/")
-
-base_url = base_url.strip("/")
-
-# Storing urls in the set, then exporting at the end
-blog_urls = set()
-
-check_url = base_url.replace("http://", '').replace("https://", '').split("/")[0]
-
 # Storing urls for pages we've found to dump into a text file
 url_set = set()
 
+blog_urls = set()
+
+links = []
+pages = []
+
+lorem_string = "Lorem ipsum dolor amet consectetur adipiscing elit eiusmod tempor incididunt labore dolore magna aliqua enim minim veniam quis nostrud exercitation ullamco laboris nisi aliquip commodo consequat Duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur Excepteur sint occaecat cupidatat proident culpa officia deserunt mollit laborum".split()
+
+lorem = set()
+
+for w in lorem_string:
+    lorem.add(" " + w + " ")
+
+# Adding 'lorem ' incase text starts with lorem
+lorem.add("lorem ")
+lorem_url_set = set()
+
 class HmblogSpider(scrapy.Spider):
+
+    name = 'hmblog-twill'
+
+
+    def __init__(self, *args, **kwargs):
+        self.url = kwargs.get('url') 
+    
+        self.start_urls = self.url
+
+        self.base_url = self.url.strip('/')
+        self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
+
+        self.parsed_base_url = re.search('.*(/.*/(.*)/)', self.base_url)
+        self.parsed_base_url = self.parsed_base_url.group(0).strip("/")
+
+        self.start_urls = [f'{self.base_url}?all-page=1']
+        self.headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Authorization":"null null",
+            "Referer": f'{self.base_url}',
+            "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
+            "sec-ch-ua-mobile": "?0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+        }
+        super(HmblogSpider, self).__init__(*args, **kwargs)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -34,21 +63,9 @@ class HmblogSpider(scrapy.Spider):
         Rule(LinkExtractor(allow=(), deny=("r/^mailto:/", "r/^tel:/"))),
     ]
 
-    name = 'hmblog_twill'
-    start_urls = [f'{base_url}?all-page=1']
-    headers = {
-        "Accept": "application/json, text/plain, */*",
-        "Authorization":"null null",
-        "Referer": f'{base_url}',
-        "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
-        "sec-ch-ua-mobile": "?0",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
-        "X-Requested-With": "XMLHttpRequest",
-    }
-
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
-        url = f'{parsed_base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date&locale=en'
+        url = f'{self.parsed_base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date&locale=en'
 
         request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
         yield request
@@ -65,7 +82,7 @@ class HmblogSpider(scrapy.Spider):
 
         # Extract blog_urls from each blog that's loaded
         for blog in blog_data:
-            blog_url = parsed_base_url + blog["full_slug"]
+            blog_url = self.parsed_base_url + blog["full_slug"]
             blog_urls.add(str(blog_url))
 
         # If the blog page has more content to load
@@ -92,17 +109,15 @@ class HmblogSpider(scrapy.Spider):
                 yield from self.blog_dump_null(blog_url, blog_response_code, link, link_type)
 
             else:
-                if check_url in link or link.startswith("/"):
+                if self.check_url in link or link.startswith("/"):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = parsed_base_url+link
+                        link = self.parsed_base_url+link
 
                 else:
                     link_type = "External"
                 
-                # print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{link}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-
                 yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
 
@@ -136,7 +151,7 @@ class HmblogSpider(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
         # File name
-        name = check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
         
         # Writing URLs to txt file as name of site
         f = open(name[0]+"-blog-links.txt", 'w+')
