@@ -10,19 +10,11 @@ cd hmscraper/hmscraper/
 
 aws s3 cp s3://daily-link-check/urls.json /home/ssm-user/scripts/py-link-check/hmscraper/hmscraper/urls.json
 
-# Checks to see if docker service is running
-if systemctl is-active --quiet docker; then
-    sudo systemctl start docker
-else
-    echo "Docker is already running"
-fi
+# Starts Docker
+sudo systemctl start docker
 
-# Checking to see if container is running
-if [ ! "$(sudo docker ps -q -f name=splash)" ]; then
-	sudo docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
-else
-        echo "Docker image is running!"
-fi
+# Starts Container
+sudo docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
 
 NOW=$(date +"%m-%d-%y")
 
