@@ -189,7 +189,7 @@ class scraperAWS(scrapy.Spider):
             file.write(json.dumps({'urls': url_set}, cls=setEncoder))
 
         # Writing local URLs to txt file as name of site
-        f = open(txt_file_name, 'w+')
+        f = open(txt_file_name, 'w+', encoding="utf-8")
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
