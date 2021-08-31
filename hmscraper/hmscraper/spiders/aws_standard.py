@@ -152,6 +152,9 @@ class scraperAWS(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
 
+        for t in url_set:
+            print(t)
+
         client = boto3.client('s3')
 
         # Generate date for report files
