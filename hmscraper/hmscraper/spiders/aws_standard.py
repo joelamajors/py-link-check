@@ -9,6 +9,7 @@ from json import JSONEncoder
 import os
 import datetime
 import boto3
+import re
 
 
 '''
@@ -170,14 +171,15 @@ class scraperAWS(scrapy.Spider):
         if not os.path.exists('./lorem'):
             os.makedirs('./lorem')
         
-        # File name
-        file_name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        # File name, using regex to get file name from url
+        base_url_reg = re.search('((\\b(?!www\\b)(?!http|https\\b)\w+))(\..*)', self.base_url)
+        file_name = base_url_reg.group(2)
 
         # File paths for local EC2 instance
-        txt_file_name = str("./links/"+d+"_"+file_name[0]+"-links.txt")
-        json_file_name = str("./links/"+d+"_"+file_name[0]+"-links.json")
-        csv_file_name = str("./reports/"+d+"_"+file_name[0]+".csv")
-        lorem_file_name = str("./lorem/"+d+"_"+file_name[0]+"-lorem-check.txt")
+        txt_file_name = str("./links/"+d+"_"+file_name+"-links.txt")
+        json_file_name = str("./links/"+d+"_"+file_name+"-links.json")
+        csv_file_name = str("./reports/"+d+"_"+file_name+".csv")
+        lorem_file_name = str("./lorem/"+d+"_"+file_name+"-lorem-check.txt")
 
         # Used to encode set to JSON
         class setEncoder(JSONEncoder):
@@ -199,10 +201,10 @@ class scraperAWS(scrapy.Spider):
             lf.write('\n'.join(map(str, lorem_url_set)))
 
             # If lorem ipsum, upload to S3 bucket
-            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+file_name[0]+"-lorem-check.txt")
+            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+file_name+"-lorem-check.txt")
 
         # Copy files to S3
-        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name[0]+"-links.txt")
-        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name[0]+"-links.json")
-        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_"+file_name[0]+"-lorem-check.csv")
+        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name+"-links.txt")
+        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_"+file_name+"-links.json")
+        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_"+file_name+"-lorem-check.csv")
 
