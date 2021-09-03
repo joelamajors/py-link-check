@@ -41,14 +41,12 @@ jq -c -r '.urls[]' urls.json | while read i; do
     VAR=$(echo $i | sed -e 's#/$##')
 
     # Variable for the API enpoints
-    API_ENDPOINTS=$(curl -L $VAR/api/blogs | jq -r '.[].full_slug')
+    API_ENDPOINTS=$(curl -L $VAR/api/posts)
 
     # Checking to see if the site is a twill site. If so, we want to run the blog check on this blogs as well. 
-    #if [[ $API_ENDPOINTS ]]; then
-    for blog_url in $API_ENDPOINTS
-    do
+    if [[ $API_ENDPOINTS ]]; then
         echo scrapy crawl aws-twill-blog -a url="$VAR$blog_url" -O ./reports/"$NOW"_blog_"$name".csv
         scrapy crawl aws-twill-blog -a url="$VAR$blog_url" -O ./reports/"$NOW"_blog_"$name".csv
-    done
+    fi
 
 done
