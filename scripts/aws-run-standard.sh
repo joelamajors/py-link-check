@@ -48,6 +48,6 @@ jq -c -r '.urls[]' urls.json | while read i; do
     for blog_url in $API_ENDPOINTS
     do
         scrapy crawl aws-twill-blog -a url="$VAR$blog_url" -O ./reports/"$NOW"_blog_"$name".csv
-    fi
+    done
 
 done
