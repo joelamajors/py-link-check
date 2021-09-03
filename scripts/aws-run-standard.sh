@@ -37,9 +37,12 @@ jq -c -r '.urls[]' urls.json | while read i; do
     echo "scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv"
     scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
 
+    # Setting variable for API endpoint to test for Twill sites. Removes trailing slash if it's present
+    VAR=$(echo $i | sed -e 's#/$##')
+
     # Checking to see if the site is a twill site. If so, we want to run the blog check on this blogs as well. 
-    if [[ $(curl -H "Accept: application/json" "$i") ]]; then
-        scrapy crawl aws-twill-blog -a url="$i" -O ./reports/"$NOW"_blog_"$name".csv
+    if [[ $(curl -iL "Accept: application/json" "$i/api/blogs") ]]; then
+        scrapy crawl aws-twill-blog -a url="$i/api/blogs" -O ./reports/"$NOW"_blog_"$name".csv
     fi
 
 done
