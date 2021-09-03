@@ -67,34 +67,34 @@ class HmblogSpider(scrapy.Spider):
     def parse(self, response):
         url = f'{self.parsed_base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date&locale=en'
 
-        request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
+        request = scrapy.Request(response.urljoin(url), callback=self.parse_blog_links, headers=self.headers)
         yield request
 
-    # Getting blog pages from API
-    def parse_api(self, response):
+    # # Getting blog pages from API
+    # def parse_api(self, response):
 
-        # Converting response to JSON
-        raw_data = response.body
-        data = json.loads(raw_data)
+    #     # Converting response to JSON
+    #     raw_data = response.body
+    #     data = json.loads(raw_data)
 
-        # Getting blog URLs
-        blog_data = data['data']
+    #     # Getting blog URLs
+    #     blog_data = data['data']
 
-        # Extract blog_urls from each blog that's loaded
-        for blog in blog_data:
-            blog_url = self.parsed_base_url + blog["full_slug"]
-            blog_urls.add(str(blog_url))
+    #     # Extract blog_urls from each blog that's loaded
+    #     for blog in blog_data:
+    #         blog_url = self.parsed_base_url + blog["full_slug"]
+    #         blog_urls.add(str(blog_url))
 
-        # If the blog page has more content to load
-        if data["next_page_url"]:
-            url = data["next_page_url"]
-            request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
-            yield request
-        else: 
-            for url in blog_urls:
-                # Adding local URL to URL set, which gets dumped into a text file at the end.
-                url_set.add(str(url))
-                yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
+    #     # If the blog page has more content to load
+    #     if data["next_page_url"]:
+    #         url = data["next_page_url"]
+    #         request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
+    #         yield request
+    #     else: 
+    #         for url in blog_urls:
+    #             # Adding local URL to URL set, which gets dumped into a text file at the end.
+    #             url_set.add(str(url))
+    #             yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
     # Go through links on blog pages, then parses dump of logs

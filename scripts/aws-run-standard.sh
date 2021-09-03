@@ -47,6 +47,7 @@ jq -c -r '.urls[]' urls.json | while read i; do
     #if [[ $API_ENDPOINTS ]]; then
     for blog_url in $API_ENDPOINTS
     do
+        echo scrapy crawl aws-twill-blog -a url="$VAR$blog_url" -O ./reports/"$NOW"_blog_"$name".csv
         scrapy crawl aws-twill-blog -a url="$VAR$blog_url" -O ./reports/"$NOW"_blog_"$name".csv
     done
 

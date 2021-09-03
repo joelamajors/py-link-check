@@ -68,7 +68,7 @@ class HmblogSpider(scrapy.Spider):
 
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
-        url = f'{self.parsed_base_url}/api/posts?blog%5B%5D=1&count=6&locale=en&order-by=publish_start_date&locale=en'
+        url = f'{self.parsed_base_url}'
 
         request = scrapy.Request(response.urljoin(url), callback=self.parse_api, headers=self.headers)
         yield request
