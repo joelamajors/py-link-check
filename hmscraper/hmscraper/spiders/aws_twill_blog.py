@@ -9,6 +9,9 @@ import boto3
 from json import JSONEncoder
 import os
 import datetime
+import requests
+from bs4 import BeautifulSoup
+
 
 # Storing urls for pages we've found to dump into a text file
 url_set = set()
@@ -80,16 +83,51 @@ class HmblogSpider(scrapy.Spider):
         raw_data = response.body
         data = json.loads(raw_data)
 
-        # Getting blog URLs
-        blog_data = data['data']
+        # data for urls
+        jsonData = data["data"]
+
+        # Ranges of pages if the blogs have more than 1 page
+        var_from = data["from"]
+        var_last_page = data["last_page"]
 
         # Parses JSON data to get all blog urls
-        for blog in blog_data:
+        for blog in jsonData:
             url = blog['seo']['json_schema']['url']
             blog_urls.add(str(url))
 
-        # For all urls in the blog_urls, 
-        # go to this and crawl
+        # Conditional to see if there's other pages for blogs. If so, then we need to hit this URL and do the same.
+        if var_from == var_last_page:
+            # Then we have all of the blogs, send these to parse_blog_links
+            for url in blog_urls:
+                # Adding local URL to URL set, which gets dumped into a text file at the end.
+                url_set.add(str(url))
+                yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
+        
+        # If the blogs have more then 1 page of content
+        else:
+            
+            # Getting the range of the blog pages. 
+            # This use used to get the all of the blog pages so we can hit every URL.
+            blog_range = [*range(var_from, var_last_page+1, 1)]
+            blog_range.remove(1)
+
+            for blog_page in blog_range:                
+                page_query = self.base_url+"/api/posts?page="+blog_page
+
+                req_response = BeautifulSoup(requests.get(page_query))
+
+                # Parsing JSON response and adding pages to blog_urls
+                blog_page_data = req_response.json()
+
+                jsonData = blog_page_data["data"]
+
+                # Parses JSON data to get all blog urls
+                for blog in jsonData:
+                    url = blog['seo']['json_schema']['url']
+                    blog_urls.add(str(url))
+
+        # Now we have the blog urls in the set.
+        # Sending this to parse_blog_links to get crawled
         for url in blog_urls:
             # Adding local URL to URL set, which gets dumped into a text file at the end.
             url_set.add(str(url))
