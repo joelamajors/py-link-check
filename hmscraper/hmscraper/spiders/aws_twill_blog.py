@@ -186,17 +186,17 @@ class HmblogSpider(scrapy.Spider):
                 return list(obj)
 
         # Writing urls to JSON
-        with open(json_file_name,'w+') as file:
+        with open(json_file_name,'a+') as file:
             file.write(json.dumps({'urls': url_set}, cls=setEncoder))
 
         # Writing local URLs to txt file as name of site
-        f = open(txt_file_name, 'w+', encoding="utf-8")
+        f = open(txt_file_name, 'a+', encoding="utf-8")
         f.write('\n'.join(map(str, url_set)))
         f.close()
 
         # Conditional for URLs that contain lorem ipsum.
         if lorem_url_set:
-            lf = open(lorem_file_name, 'w+')
+            lf = open(lorem_file_name, 'a+')
             lf.write('\n'.join(map(str, lorem_url_set)))
 
             # If lorem ipsum, upload to S3 bucket
