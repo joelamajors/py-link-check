@@ -54,6 +54,7 @@ class HmblogSpider(scrapy.Spider):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest",
         }
+
         super(HmblogSpider, self).__init__(*args, **kwargs)
 
     @classmethod
@@ -69,7 +70,7 @@ class HmblogSpider(scrapy.Spider):
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
         # url = f'{self.parsed_base_url}'
-        request = scrapy.Request(response.urljoin(self.url), callback=self.parse_blog_links, headers=self.headers)
+        request = scrapy.Request(response.urljoin(self.url), callback=self.parse_api, headers=self.headers)
         yield request
 
     # Getting blog pages from API
