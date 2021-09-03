@@ -41,8 +41,8 @@ class HmblogSpider(scrapy.Spider):
         self.base_url = self.url.strip('/')
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
-        self.parsed_base_url = re.search('.*(/.*/(.*)/)', self.base_url)
-        self.parsed_base_url = self.parsed_base_url.group(0).strip("/")
+        self.parsed_base_url = re.search('(\\b(?!www\\b)(?!http|https\\b)\w+)(\..*)', self.base_url)
+        self.parsed_base_url = self.parsed_base_url.group(1)
 
         self.start_urls = [f'{self.base_url}?all-page=1']
         self.headers = {
