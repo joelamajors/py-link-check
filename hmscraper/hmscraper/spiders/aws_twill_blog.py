@@ -115,7 +115,7 @@ class HmblogSpider(scrapy.Spider):
             blog_range.remove(1)
 
             for blog_page in blog_range:                
-                page_query = self.base_url+"/api/posts?page="+blog_page
+                page_query = self.base_url+"/api/posts?page="+str(blog_page)
 
                 req_response = BeautifulSoup(requests.get(page_query))
 
