@@ -86,7 +86,7 @@ class HmblogSpider(scrapy.Spider):
         # data for urls
         jsonData = data["data"]
 
-        print(jsonData)
+        # print(jsonData)
 
         # Ranges of pages if the blogs have more than 1 page
         var_from = data["from"]
@@ -94,8 +94,9 @@ class HmblogSpider(scrapy.Spider):
 
         # Parses JSON data to get all blog urls
         for blog in jsonData:
-            url = blog['seo']['json_schema']['url']
-            blog_urls.add(str(url))
+            if blog['seo']['json_schema']['url']:
+                url = blog['seo']['json_schema']['url']
+                blog_urls.add(str(url))
 
         # Conditional to see if there's other pages for blogs. If so, then we need to hit this URL and do the same.
         if var_from == var_last_page:
