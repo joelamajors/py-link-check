@@ -116,7 +116,13 @@ class HmblogSpider(scrapy.Spider):
 
             for blog_page in blog_range:
 
+                # Page of additional blogs
                 page_query = self.base_url+"/api/posts?page="+str(blog_page)
+            
+
+                print("Page: ")
+                print(page_query)
+                print("\n")
 
                 resp = requests.get(page_query)
                 resp_data = resp.text
@@ -132,12 +138,12 @@ class HmblogSpider(scrapy.Spider):
                     url = blog['seo']['json_schema']['url']
                     blog_urls.add(str(url))
 
-        # Now we have the blog urls in the set.
-        # Sending this to parse_blog_links to get crawled
-        for url in blog_urls:
-            # Adding local URL to URL set, which gets dumped into a text file at the end.
-            url_set.add(str(url))
-            yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
+            # Now we have the blog urls in the set.
+            # Sending this to parse_blog_links to get crawled
+            for url in blog_urls:
+                # Adding local URL to URL set, which gets dumped into a text file at the end.
+                url_set.add(str(url))
+                yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
     # Go through links on blog pages, then parses dump of logs
