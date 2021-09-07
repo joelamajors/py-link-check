@@ -94,7 +94,7 @@ class HmblogSpider(scrapy.Spider):
 
         # Parses JSON data to get all blog urls
         for blog in jsonData:
-            if blog['seo']['json_schema']['url']:
+            if blog['seo']['json_schema'] != None:
                 url = blog['seo']['json_schema']['url']
                 blog_urls.add(str(url))
 
