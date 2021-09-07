@@ -86,6 +86,8 @@ class HmblogSpider(scrapy.Spider):
         # data for urls
         jsonData = data["data"]
 
+        print(jsonData)
+
         # Ranges of pages if the blogs have more than 1 page
         var_from = data["from"]
         var_last_page = data["last_page"]
