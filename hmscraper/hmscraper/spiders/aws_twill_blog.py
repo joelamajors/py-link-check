@@ -114,21 +114,16 @@ class HmblogSpider(scrapy.Spider):
             blog_range = [*range(var_from, var_last_page+1, 1)]
             blog_range.remove(1)
 
+            for blog_page in blog_range:
 
-
-            for blog_page in blog_range:                
-                print("Page: ")
-                print(self.base_url+"?page="+str(blog_page))
-                print("\n")
                 page_query = self.base_url+"/api/posts?page="+str(blog_page)
 
-                req_response = BeautifulSoup(requests.get(page_query))
-                print("Response: ")
-                print(req_response)
-                print("\n")
+                resp = requests.get(page_query)
+                resp_data = resp.text
+                soup = BeautifulSoup(resp_data, "html.parser")
 
                 # Parsing JSON response and adding pages to blog_urls
-                blog_page_data = req_response.json()
+                blog_page_data = json.loads(str(soup))
 
                 jsonData = blog_page_data["data"]
 
