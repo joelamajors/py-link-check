@@ -118,7 +118,7 @@ class HmblogSpider(scrapy.Spider):
 
             for blog_page in blog_range:                
                 print("Page: ")
-                print(self.base_url+"/api/posts?page="+str(blog_page))
+                print(self.base_url+"?page="+str(blog_page))
                 print("\n")
                 page_query = self.base_url+"/api/posts?page="+str(blog_page)
 
