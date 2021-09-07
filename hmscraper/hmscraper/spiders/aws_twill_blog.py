@@ -72,7 +72,6 @@ class HmblogSpider(scrapy.Spider):
 
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
-        # url = f'{self.parsed_base_url}'
         request = scrapy.Request(response.urljoin(self.url), callback=self.parse_api, headers=self.headers)
         yield request
 
@@ -117,7 +116,7 @@ class HmblogSpider(scrapy.Spider):
             for blog_page in blog_range:
 
                 # Page of additional blogs
-                page_query = self.base_url+"/api/posts?page="+str(blog_page)
+                page_query = self.base_url+"?page="+str(blog_page)
             
 
                 print("Page: ")
