@@ -163,11 +163,14 @@ class HmblogSpider(scrapy.Spider):
 
                     if link.startswith("/"):
                         link = self.base_url_link+link                    
+                    
+                    # TEST THIS JEFF!!
+                    self.page_url = link.replace(":443","").replace(":80","").strip("/")
 
                 else:
                     link_type = "External"
 
-                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': self.page_url, 'link_type': link_type }, headers=self.headers)
 
     # Dumping all of the data
     def blog_dump(self, response):
