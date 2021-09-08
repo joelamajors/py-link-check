@@ -140,7 +140,8 @@ class HmblogSpider(scrapy.Spider):
             for url in blog_urls:
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 url_set.add(str(url))
-                yield SplashRequest(response.urljoin(url), callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
+                print("Checking: "+url)
+                yield SplashRequest(url, callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
     # Go through links on blog pages, then parses dump of logs
