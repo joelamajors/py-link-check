@@ -41,6 +41,10 @@ class HmblogSpider(scrapy.Spider):
     
         self.start_urls = self.url
 
+        self.base_url_link = re.search('.*(/.*/(.*)/)', self.base_url)
+        self.base_url_link = self.base_url_link.group(0).strip("/")
+
+
         self.base_url = self.url.strip('/')
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
@@ -159,12 +163,12 @@ class HmblogSpider(scrapy.Spider):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = self.base_url+link
+                        link = self.base_url_link+link                    
 
                 else:
                     link_type = "External"
-                
-                yield scrapy.Request(link, callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+
+                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
     # Dumping all of the data
     def blog_dump(self, response):
