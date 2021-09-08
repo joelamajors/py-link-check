@@ -140,7 +140,6 @@ class HmblogSpider(scrapy.Spider):
             for url in blog_urls:
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 url_set.add(str(url))
-                print("Checking: "+url)
                 yield SplashRequest(url, callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
@@ -165,7 +164,7 @@ class HmblogSpider(scrapy.Spider):
                 else:
                     link_type = "External"
                 
-                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+                yield scrapy.Request(link, callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
     # Dumping all of the data
     def blog_dump(self, response):
