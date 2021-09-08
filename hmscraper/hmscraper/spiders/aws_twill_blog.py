@@ -159,7 +159,7 @@ class HmblogSpider(scrapy.Spider):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = self.parsed_base_url+link
+                        link = self.base_url+link
 
                 else:
                     link_type = "External"
