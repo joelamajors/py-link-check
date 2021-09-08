@@ -248,4 +248,4 @@ class HmblogSpider(scrapy.Spider):
         # Copy files to S3
         client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_blog_"+file_name+"-links.txt")
         client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_blog_"+file_name+"-links.json")
-        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_blog_"+file_name+"-lorem-check.csv")
+        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_blog_"+file_name+"-check.csv")
