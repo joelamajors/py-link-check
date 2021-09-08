@@ -34,7 +34,6 @@ fi
 # Now loop through the urls and run the script
 jq -c -r '.urls[]' urls.json | while read i; do
     name=$(echo $i |  awk -F[/:] '{print $4}' | cut -f1 -d".")
-    echo "scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv"
     scrapy crawl aws-standard -a url="$i" -O ./reports/"$NOW"_"$name".csv
 
     # Setting variable for API endpoint to test for Twill sites. Removes trailing slash if it's present
@@ -45,7 +44,6 @@ jq -c -r '.urls[]' urls.json | while read i; do
 
     # Checking to see if the site is a twill site. If so, we want to run the blog check on this blogs as well. 
     if [[ $API_ENDPOINTS ]]; then
-        echo scrapy crawl aws-twill-blog -a url="$VAR/api/posts" -O ./reports/"$NOW"_blog_"$name".csv
         scrapy crawl aws-twill-blog -a url="$VAR/api/posts" -O ./reports/"$NOW"_blog_"$name".csv
     fi
 

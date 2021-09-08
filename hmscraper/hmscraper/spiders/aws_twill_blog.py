@@ -120,37 +120,36 @@ class HmblogSpider(scrapy.Spider):
 
                 # Page of additional blogs
                 page_query = self.base_url+"?page="+str(blog_page)
-            
-                print("Page: ")
-                print(page_query)
-                print("\n")
 
+                # API request response
                 resp = requests.get(page_query)
                 resp_data = resp.text
 
                 # Parsing JSON response and adding pages to blog_urls
                 blog_page_data = json.loads(str(resp_data))
 
+                # JSON data we're working with
                 jsonData = blog_page_data["data"]
 
-                # Parses JSON data to get all blog urls
+                # Parsing the JSON data to get the URLs
                 for blog in jsonData:
                     url = blog['seo']['json_schema']['url']
                     blog_urls.add(str(url))
 
-            # Now we have the blog urls in the set.
-            # Sending this to parse_blog_links to get crawled
+            # Now we should have all of the URLs in a dataset. 
+            # Parse urls in the set
             for url in blog_urls:
                 # Adding local URL to URL set, which gets dumped into a text file at the end.
                 url_set.add(str(url))
                 yield SplashRequest(url, callback=self.parse_blog_links,  args={'wait': 0.5}, headers=self.headers)
  
 
-    # Go through links on blog pages, then parses dump of logs
+    # Go through links on blog pages
     def parse_blog_links(self, response):
         blog_response_code = response.status
         blog_url = response.url
 
+        # For each link on the page
         for link in response.css('a::attr(href)').getall():
 
             if "mailto:" in link or "tel:" in link:
@@ -162,15 +161,14 @@ class HmblogSpider(scrapy.Spider):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = self.base_url_link+link                    
-                    
-                    # TEST THIS JEFF!!
-                    self.page_url = link.replace(":443","").replace(":80","").strip("/")
+                        link = self.base_url+link
 
                 else:
                     link_type = "External"
-
-                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': self.page_url, 'link_type': link_type }, headers=self.headers)
+                
+                # To get the response code, we run this through scrapy.Request(). We clean up the URL with removing the port number that's appeneded after the TLD in the request.url
+                # Example: https://cubbank.com:443/sample_page > https://cubbank.com/sample_page
+                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
     # Dumping all of the data
     def blog_dump(self, response):
@@ -183,7 +181,7 @@ class HmblogSpider(scrapy.Spider):
         yield {
             "Page": blog_url,
             "Page Response": blog_response_code,
-            "Link": response.url,
+            "Link": response.url.replace(":443","").replace(":80","").strip("/"),
             "Link Type": link_type,
             "Link Response": response.status,
         }
