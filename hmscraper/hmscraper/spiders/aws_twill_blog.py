@@ -230,10 +230,9 @@ class HmblogSpider(scrapy.Spider):
             os.makedirs('./lorem')
         
         # File name, using regex to get file name from url
-        base_url_reg = re.search('((\\b(?!www\\b)(?!http|https\\b)\w+))(\..*)', self.parsed_base_url)
-        file_name = base_url_reg.group(2)
-
-        print("~~~~~"+file_name+"~~~~~")
+        print("~~~~~"+self.parsed_base_url+"~~~~~")
+        # base_url_reg = re.search('((\\b(?!www\\b)(?!http|https\\b)\w+))(\..*)', self.parsed_base_url)
+        file_name = self.parsed_base_url
 
         # File paths for local EC2 instance
         txt_file_name = str("./links/"+d+"_blog_"+file_name+"-links.txt")
