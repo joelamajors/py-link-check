@@ -159,14 +159,19 @@ class HmblogSpider(scrapy.Spider):
 
             else:
                 if self.check_url in link or link.startswith("/"):
+                    print('\n\n\n')
+                    print('LNK: '+ link)
                     link_type = "Local"
 
                     if link.startswith("/"):
                         link = self.url_without_api_append + link
+                        print("REPLACED LINK (rel): "+link)
+                        print('\n\n\n')
+
 
                     # Additional check to remove '/api/posts/' from the link
                     if '/api/posts/' in link:
-                        link = link.replace("/api/posts/", "")
+                        link = link.replace("api/posts/", "")
 
                 else:
                     link_type = "External"

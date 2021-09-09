@@ -66,6 +66,8 @@ docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
 - Depending on the crawler you need, run the following commands:
     - standard
     ``` scrapy crawl standard -a url=https://website.tld -O nameOfWebsite.csv ```
+    - blog-twill
+    ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
     - aws-standard
     ``` scrapy crawl aws-standard -a url=https://website.tld -O nameOfWebsite.csv ```
     - blog-twill
