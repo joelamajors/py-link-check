@@ -159,6 +159,8 @@ class HmblogSpider(scrapy.Spider):
 
             else:
                 if self.check_url in link or link.startswith("/"):
+                    print('\n\n\n')
+                    print('LNK: '+ link)
                     link_type = "Local"
 
                     if link.startswith("/"):
@@ -167,10 +169,13 @@ class HmblogSpider(scrapy.Spider):
                     # Additional check to remove '/api/posts/' from the link
                     if '/api/posts/' in link:
                         link = link.replace("/api/posts/", "")
+                        print("REPLACED LINK (rel): "+link)
 
                 else:
                     link_type = "External"
                 
+                print("FINAL LINK: "+link)
+
                 # To get the response code, we run this through scrapy.Request().
                 # We clean up the URL with removing the port number that's appeneded after the TLD in the request.url
                 # Example: https://cubbank.com:443/sample_page > https://cubbank.com/sample_page
