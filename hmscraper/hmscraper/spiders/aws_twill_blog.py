@@ -88,8 +88,6 @@ class HmblogSpider(scrapy.Spider):
         # data for urls
         jsonData = data["data"]
 
-        # print(jsonData)
-
         # Ranges of pages if the blogs have more than 1 page
         var_from = data["from"]
         var_last_page = data["last_page"]
@@ -169,15 +167,10 @@ class HmblogSpider(scrapy.Spider):
                 else:
                     link_type = "External"
 
-
                 link = self.url.replace('/api/posts/', '') + link
 
                 r = requests.get(link)
                 blog_link_response_code = r.status_code
-
-                print("Base Url: "+ self.base_url)
-                print("Parsed Base Url: "+ self.parsed_base_url)
-                print("Url: "+ self.url)
 
                 yield from self.blog_dump(blog_url, blog_response_code, link, link_type, blog_link_response_code)
 
