@@ -49,6 +49,9 @@ class HmblogSpider(scrapy.Spider):
 
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
+        self.parsed_base_url = re.search('(\\b(?!www\\b)(?!http|https\\b)\w+)(\..*)', self.base_url)
+        self.parsed_base_url = self.parsed_base_url.group(1)
+
         self.start_urls = [f'{self.url}']
         self.headers = {
             "Accept": "application/json, text/plain, */*",
@@ -72,8 +75,6 @@ class HmblogSpider(scrapy.Spider):
         Rule(LinkExtractor(allow=(), deny=("r/^mailto:/", "r/^tel:/"))),
     ]
 
-
-
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
         if self.url.endswith('/'):
@@ -86,11 +87,6 @@ class HmblogSpider(scrapy.Spider):
     # Getting blog pages from API
     def parse_api(self, response):
         
-        print('Response: \n')
-        print(response.url)
-        print(response.body)
-        print('\n\n\n')
-
         # Converting response to JSON
         raw_data = response.body
         data = json.loads(raw_data)
@@ -133,10 +129,6 @@ class HmblogSpider(scrapy.Spider):
                 resp = requests.get(page_query)
                 resp_data = resp.text
 
-                print('Page Query: ')
-                print(page_query)
-                print('\n\n\n')
-
                 # Parsing JSON response and adding pages to blog_urls
                 blog_page_data = json.loads(str(resp_data))
 
@@ -170,15 +162,11 @@ class HmblogSpider(scrapy.Spider):
 
             else:
                 if self.check_url in link or link.startswith("/"):
-                    print('\n\n\n')
-                    print('LNK: '+ link)
+
                     link_type = "Local"
 
                     if link.startswith("/"):
                         link = self.url_without_api_append + link
-                        print("REPLACED LINK (rel): "+link)
-                        print('\n\n\n')
-
 
                     # Additional check to remove '/api/posts/' from the link
                     if '/api/posts/' in link:
@@ -223,8 +211,8 @@ class HmblogSpider(scrapy.Spider):
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
         # File name
-        name = self.check_url.replace("http://", '').replace("https://", '').split("/")[0].split(".")
+        name = self.parsed_base_url
         
         # Writing URLs to txt file as name of site
-        f = open(name[0]+"-blog-links.txt", 'w+')
+        f = open(name+"-blog-links.txt", 'w+')
         f.write('\n'.join(map(str, url_set)))

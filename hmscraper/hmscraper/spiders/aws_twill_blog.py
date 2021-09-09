@@ -47,9 +47,6 @@ class HmblogSpider(scrapy.Spider):
 
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
 
-        self.base_url_link = re.search('.*(/.*/(.*)/)', self.base_url)
-        self.base_url_link = self.base_url_link.group(0).strip("/")
-
         self.parsed_base_url = re.search('(\\b(?!www\\b)(?!http|https\\b)\w+)(\..*)', self.base_url)
         self.parsed_base_url = self.parsed_base_url.group(1)
 
@@ -159,8 +156,7 @@ class HmblogSpider(scrapy.Spider):
 
             else:
                 if self.check_url in link or link.startswith("/"):
-                    print('\n\n\n')
-                    print('LNK: '+ link)
+
                     link_type = "Local"
 
                     if link.startswith("/"):
@@ -169,13 +165,10 @@ class HmblogSpider(scrapy.Spider):
                     # Additional check to remove '/api/posts/' from the link
                     if '/api/posts/' in link:
                         link = link.replace("api/posts/", "")
-                        print("REPLACED LINK (rel): "+link)
 
                 else:
                     link_type = "External"
                 
-                print("FINAL LINK: "+link)
-
                 # To get the response code, we run this through scrapy.Request().
                 # We clean up the URL with removing the port number that's appeneded after the TLD in the request.url
                 # Example: https://cubbank.com:443/sample_page > https://cubbank.com/sample_page
@@ -229,9 +222,7 @@ class HmblogSpider(scrapy.Spider):
         if not os.path.exists('./lorem'):
             os.makedirs('./lorem')
         
-        # File name, using regex to get file name from url
-        print("~~~~~"+self.parsed_base_url+"~~~~~")
-        # base_url_reg = re.search('((\\b(?!www\\b)(?!http|https\\b)\w+))(\..*)', self.parsed_base_url)
+        # File name
         file_name = self.parsed_base_url
 
         # File paths for local EC2 instance
