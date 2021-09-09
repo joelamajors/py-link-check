@@ -39,7 +39,7 @@ class HmblogSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         self.url = kwargs.get('url') 
     
-        self.start_urls = self.url
+        self.start_urls = self.url 
 
         self.base_url = self.url.strip('/')
         self.check_url = self.base_url.replace("http://", '').replace("https://", '').split("/")[0]
@@ -162,33 +162,35 @@ class HmblogSpider(scrapy.Spider):
                 if self.check_url in link or link.startswith("/"):
                     link_type = "Local"
 
+                    # If this is a relative link
                     if link.startswith("/"):
                         link = self.url.replace('/api/posts/', '') + link
                         
-                        # Using regex to remove the /api/posts/ from the link. Then we request the URL and get response code in the following request. 
-                        # blog_pattern = r'.*(/.*/(.*)/)'
-                        # link_parsed = re.sub(blog_pattern, '', link) + link
                 else:
                     link_type = "External"
 
-                # To get the response code, we run this through scrapy.Request(). We clean up the URL with removing the port number that's appeneded after the TLD in the request.url
-                # Example: https://cubbank.com:443/sample_page > https://cubbank.com/sample_page
-                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+
+                link = self.url.replace('/api/posts/', '') + link
+
+                r = requests.get(link)
+                blog_link_response_code = r.status_code
+
+                print("Base Url: "+ self.base_url)
+                print("Parsed Base Url: "+ self.parsed_base_url)
+                print("Url: "+ self.url)
+
+                yield from self.blog_dump(blog_url, blog_response_code, link, link_type, blog_link_response_code)
+
 
     # Dumping all of the data
-    def blog_dump(self, response):
-
-        # Retreiving meta to pass to blog_dump
-        blog_url = response.meta["blog_url"]
-        blog_response_code = response.meta["blog_response_code"]
-        link_type = response.meta["link_type"]
+    def blog_dump(self, blog_url, blog_response_code, blog_link, link_type, blog_link_response_code):
 
         yield {
             "Page": blog_url,
             "Page Response": blog_response_code,
-            "Link": response.url.replace(":443","").replace(":80","").strip("/"),
+            "Link": blog_link,
             "Link Type": link_type,
-            "Link Response": response.status,
+            "Link Response": blog_link_response_code,
         }
 
     # Dumping data for mailto/tel links since these are not checked. 
