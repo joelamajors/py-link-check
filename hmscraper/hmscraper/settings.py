@@ -12,7 +12,7 @@ BOT_NAME = 'hmscraper'
 SPIDER_MODULES = ['hmscraper.spiders']
 NEWSPIDER_MODULE = 'hmscraper.spiders'
 
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'CRITICAL'
 
 HTTPERROR_ALLOWED_CODES = [404,403]
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
