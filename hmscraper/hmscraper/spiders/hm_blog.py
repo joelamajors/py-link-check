@@ -27,8 +27,7 @@ lorem_url_set = set()
 
 class HmblogSpider(scrapy.Spider):
 
-    name = 'hmblog-twill'
-
+    name = 'blog-twill'
 
     def __init__(self, *args, **kwargs):
         self.url = kwargs.get('url') 

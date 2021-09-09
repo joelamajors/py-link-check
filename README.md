@@ -14,11 +14,12 @@ If the `-O` is used, this will trigger an output file of the crawler results. Th
 ```
 
 ## Crawlers
-There are three crawlers to choose from:
+There are several crawlers to choose from:
 ```
 standard: Runs crawler on site to check links on page. This will likely be the one you need.
-hmblog-twill: Runs crawler on the blogs for Twill sites.
+blog-twill: Runs crawler on the blogs for Twill sites.
 aws-standard: Runs the crawler from AWS. This runs the standard crawler from AWS and dumps reports to the daily-link-check S3 bucket.
+aws-twill-blog: HM Twill crawler which runs the crawler from AWS. Runs the crawler and dumps the results to the daily-link-check S3 bucket.
 ```
 <br>
 
@@ -67,8 +68,8 @@ docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
     ``` scrapy crawl standard -a url=https://website.tld -O nameOfWebsite.csv ```
     - aws-standard
     ``` scrapy crawl aws-standard -a url=https://website.tld -O nameOfWebsite.csv ```
-    - hmblog-twill
-    ``` scrapy crawl aws-standard -a url=https://website.tld -O nameOfWebsite.csv ```
+    - blog-twill
+    ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
 
 Notes
 - The `-O` flag is outputting the status codes to a CSV. You should name this the same name of the name of website without the http|https or the TLD. 
