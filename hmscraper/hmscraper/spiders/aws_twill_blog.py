@@ -157,23 +157,23 @@ class HmblogSpider(scrapy.Spider):
                 yield from self.blog_dump_null(blog_url, blog_response_code, link, link_type)
 
             else:
+                # Something to consider here - if url starts with. 
+                # There could be a redirect link here which could flag an external URL as an internal link. 
                 if self.check_url in link or link.startswith("/"):
                     link_type = "Local"
 
                     if link.startswith("/"):
-                        link = self.base_url+link
-
+                        link = self.url.replace('/api/posts/', '') + link
+                        
+                        # Using regex to remove the /api/posts/ from the link. Then we request the URL and get response code in the following request. 
+                        # blog_pattern = r'.*(/.*/(.*)/)'
+                        # link_parsed = re.sub(blog_pattern, '', link) + link
                 else:
                     link_type = "External"
-                
-
-                # Using regex to remove the /api/posts/ from the link. Then we request the URL and get response code in the following request. 
-                blog_pattern = r'.*(/.*/(.*)/)'
-                link_parsed = re.sub(blog_pattern, '', link)
 
                 # To get the response code, we run this through scrapy.Request(). We clean up the URL with removing the port number that's appeneded after the TLD in the request.url
                 # Example: https://cubbank.com:443/sample_page > https://cubbank.com/sample_page
-                yield scrapy.Request(response.urljoin(link_parsed), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
+                yield scrapy.Request(response.urljoin(link), callback=self.blog_dump, meta={ 'blog_response_code': blog_response_code, 'blog_url': blog_url, 'link_type': link_type }, headers=self.headers)
 
     # Dumping all of the data
     def blog_dump(self, response):
