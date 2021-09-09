@@ -168,7 +168,7 @@ class HmblogSpider(scrapy.Spider):
 
                     # Additional check to remove '/api/posts/' from the link
                     if '/api/posts/' in link:
-                        link = link.replace("/api/posts/", "")
+                        link = link.replace("api/posts/", "")
                         print("REPLACED LINK (rel): "+link)
 
                 else:
