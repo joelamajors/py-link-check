@@ -1,8 +1,8 @@
 # Py-link-check
 
 This crawler uses Python Scrapy and Splash to crawl websites with dynamic content and test every link on each page and dumps a report of the following:
-- text file of all local urls (which can be used for other tools like page-reporter, lorem-ipsum checker, etc.)
-- text file of all local urls which have lorem ipsum (`site-lorem-check.txt`)
+- Text and json of all local urls under `reports` folder.
+- Text file of all local urls which have lorem ipsum (`site-lorem-check.txt`)
 
 If the `-O` is used, this will trigger an output file of the crawler results. The following columns will be generated:
 ```
@@ -13,86 +13,66 @@ If the `-O` is used, this will trigger an output file of the crawler results. Th
             "Link Response": Link Response Code ("N/A" if the link type is "Mailto/Tel")
 ```
 
-There's currently two crawlers in this package. Once is for standard URLs (hm_standard) and another is for blog URLs in twill (hm_blog). The crawlers are located under `hmcraper/hmscraper/spiders` and are called:
+## Crawlers
+There are several crawlers to choose from:
 ```
-hm_blog
-hm_standard
-```
-<br>
-
-## Setup Scrapy
-This tool uses Splash to act as a proxy to render dynamic pages in a browser. Fortunately Splash can be setup with docker using only 2 lines.
-
-If this is the first time you're running this tool, you'll need to pull the image. If you've already ran this tool before - you do not need to pull it and can move to the next step.   Pull the docker image by running this in terminal:
-```
-docker pull scrapinghub/splash
-```
-Next we need to run the docker image with the following command:
-```
-docker run -it -p 8050:8050 --rm scrapinghub/splash
+standard: Runs crawler on site to check links on page. This will likely be the one you need.
+blog-twill: Runs crawler on the blogs for Twill sites.
+aws-standard: Runs the crawler from AWS. This runs the standard crawler from AWS and dumps reports to the daily-link-check S3 bucket.
+aws-twill-blog: HM Twill crawler which runs the crawler from AWS. Runs the crawler and dumps the results to the daily-link-check S3 bucket.
 ```
 <br>
 
 ## Install requirements
-- Verify you have Python3 installed. If not, install this.
-- Clone the repo and CD into the repo.
-- Install the following modules by running these commands in our terminal:
-``` 
-pip3 install scrapy
-pip3 install scrapy-splash
+- Verify you have Python3 installed.
+    - run `python --version` or `python3 --version`, which should be ≥`3.9.X`.
+        > (For all below commands, use whichever works on your machine: `python` or `python3`)
+    - if not installed, then go to the [python download site](https://www.python.org/downloads/) and follow download instructions.
+- Install boto3 outside of the virtual environment
+  - `pip install boto3`
+- CD into the repo and create your virtual environment
+  - `python3 -m venv venv`
+- activate your virtual environment
+  - Mac/lunix: `source venv/bin/activate`
+  - Windows: `venv/Scripts/Activate`
+- Install requirements
+    - `pip install -r requirements.txt`
+
+Note: You'll use this virtual environment everytime you use this. This is so pacakages that are needed do not interfer with any global dependencies you have installed.
+
+
+Next, you'll need to pull the docker image for scrapy-splash. This is used to act like our browser so we can render the JS that's on the page.
+```
+docker pull scrapinghub/splash
+```
+
+---
+
+# How To use
+
+## Start Splash Docker Image
+Run the docker image with the following command:
+```
+docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
 ```
 <br>
 
-## To run:
+## Running a crawler
+- CD into the repo.
+- activate your virtual environment
+  - Mac/lunix: `source venv/bin/activate`
+  - Windows: `venv/Scripts/Activate`
+- Change to the `hmscraper/hmscraper` directory
+- Depending on the crawler you need, run the following commands:
+    - standard
+    ``` scrapy crawl standard -a url=https://website.tld -O nameOfWebsite.csv ```
+    - blog-twill
+    ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
+    - aws-standard
+    ``` scrapy crawl aws-standard -a url=https://website.tld -O nameOfWebsite.csv ```
+    - blog-twill
+    ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
 
-#### Setup URL in script
-- Open the file of the spider your about to use (hm_blog or hm_standard).
-- Change the URL variable to be the base url for the site.
-	- For example:
-    ``` http://aac.hatfield.marketing/ ```
-<br>
-
-#### Runing script
-We can run this tool several different ways. This is generally ran with the `-O` flag which generates a CSV or JSON file of all the columns provided above. In addition, you can run this without any flags and generate the local URLs list if that is all you need. You can call the crawler with the following names:
-#### Crawler names
-- standard - standard URL crawler
-- hmblog_twill - crawler for hmtwill blogs 
-<br>
-
-##### Run with no output file
-
-```
-scrapy crawl standard
-```
-<br>
-
-##### Run with output file
-Run the command with the `-O` flag indicating we want to generate an output file and supply the name of the outfile. 
-<br>
-CSV output:
-```
-scrapy crawl standard -O beepboop.csv
-```
-  
-JSON output:  
-```
-scrapy crawl standard -O beepboop.json
-```
-<br>
-
-##### Run with no output to terminal
-Run the spider with the `-L WARN` flag and parameter. Additional parameters can be found in Scrapy documentation.
-<br>
-
-```
-scrapy crawl SPIDER_NAME -L WARN
-
-scrapy crawl SPIDER_NAME -O beepboop.csv -L WARN
-
-etc...
-```
-
-<br>
-
-### List of URLs
-Regardless if you run the crawler with or without the -O output, they will generate a list of all local URLs & the lorem ipsum text files (if detected) and save then under repo/hmscraper/... 
+Notes
+- The `-O` flag is outputting the status codes to a CSV. You should name this the same name of the name of website without the http|https or the TLD.
+- If you do NOT need the CSV report, you can run this without the -O parameter. You will still receieve the urls.txt/json files, and the lorem-ipsum text file if lorem ipsum is detected.

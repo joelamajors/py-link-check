@@ -34,16 +34,14 @@ lorem_url_set = set()
 
 class HmblogSpider(scrapy.Spider):
 
-    name = 'blog-twill'
+    name = 'aws-twill-blog'
 
     def __init__(self, *args, **kwargs):
-        self.url = kwargs.get('url')
-
-        self.url = self.url.strip('/')+'/api/posts'
+        self.url = kwargs.get('url') 
     
         self.start_urls = self.url 
 
-        self.base_url = self.url
+        self.base_url = self.url.strip('/')
 
         self.url_without_api_append = self.base_url.replace('/api/posts/', '')
 
@@ -52,7 +50,7 @@ class HmblogSpider(scrapy.Spider):
         self.parsed_base_url = re.search('(\\b(?!www\\b)(?!http|https\\b)\w+)(\..*)', self.base_url)
         self.parsed_base_url = self.parsed_base_url.group(1)
 
-        self.start_urls = [f'{self.url}']
+        self.start_urls = [f'{self.base_url}']
         self.headers = {
             "Accept": "application/json, text/plain, */*",
             "Authorization":"null null",
@@ -77,16 +75,12 @@ class HmblogSpider(scrapy.Spider):
 
     # Gets API URL, then goes to parse API. 
     def parse(self, response):
-        if self.url.endswith('/'):
-            request = scrapy.Request(response.urljoin(self.url+'api/posts'), callback=self.parse_api, headers=self.headers)    
-            yield request
-        else:
-            request = scrapy.Request(response.urljoin(self.url+'/api/posts'), callback=self.parse_api, headers=self.headers)
-            yield request
+        request = scrapy.Request(response.urljoin(self.url), callback=self.parse_api, headers=self.headers)
+        yield request
 
     # Getting blog pages from API
     def parse_api(self, response):
-        
+
         # Converting response to JSON
         raw_data = response.body
         data = json.loads(raw_data)
@@ -210,9 +204,56 @@ class HmblogSpider(scrapy.Spider):
 
     # When the spider is completed, all local urls are dumped to a txt file.
     def spider_closed(self, spider):
-        # File name
-        name = self.parsed_base_url
+
+        client = boto3.client('s3')
+
+        # Generate date for report files
+        x = datetime.datetime.now()
+        d = x.strftime('%m-%d-%y')
+        m = x.strftime('%b')
+
+        # Files should be created. But if not, then create them
+        if not os.path.exists('./links'):
+            os.makedirs('./links')
+
+        if not os.path.exists('./reports'):
+            os.makedirs('./reports')
+
+        if not os.path.exists('./lorem'):
+            os.makedirs('./lorem')
         
-        # Writing URLs to txt file as name of site
-        f = open(name+"-blog-links.txt", 'w+')
+        # File name
+        file_name = self.parsed_base_url
+
+        # File paths for local EC2 instance
+        txt_file_name = str("./links/"+d+"_blog_"+file_name+"-links.txt")
+        json_file_name = str("./links/"+d+"_blog_"+file_name+"-links.json")
+        csv_file_name = str("./reports/"+d+"_blog_"+file_name+".csv")
+        lorem_file_name = str("./lorem/"+d+"_blog_"+file_name+"-lorem-check.txt")
+
+        # Used to encode set to JSON
+        class setEncoder(JSONEncoder):
+            def default(self, obj):
+                return list(obj)
+
+        # Writing urls to JSON
+        with open(json_file_name,'w+') as file:
+            file.write(json.dumps({'urls': url_set}, cls=setEncoder))
+
+        # Writing local URLs to txt file as name of site
+        f = open(txt_file_name, 'w+', encoding="utf-8")
         f.write('\n'.join(map(str, url_set)))
+        f.close()
+
+        # Conditional for URLs that contain lorem ipsum.
+        if lorem_url_set:
+            lf = open(lorem_file_name, 'w+')
+            lf.write('\n'.join(map(str, lorem_url_set)))
+
+            # If lorem ipsum, upload to S3 bucket
+            client.upload_file(lorem_file_name, 'daily-link-check', m+"/lorem/"+d+"_"+file_name+"-lorem-check.txt")
+
+        # Copy files to S3
+        client.upload_file(txt_file_name, 'daily-link-check', m+"/links/"+d+"_blog_"+file_name+"-links.txt")
+        client.upload_file(json_file_name, 'daily-link-check', m+"/links/"+d+"_blog_"+file_name+"-links.json")
+        client.upload_file(csv_file_name, 'daily-link-check', m+"/reports/"+d+"_blog_"+file_name+"-check.csv")
