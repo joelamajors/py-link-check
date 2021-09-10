@@ -25,7 +25,7 @@ aws-twill-blog: HM Twill crawler which runs the crawler from AWS. Runs the crawl
 
 ## Install requirements
 - Verify you have Python3 installed.
-    - run `python --version` or `python3 --version`, which should be ≥`3.9.X`.
+    - run `python --version` or `python3 --version`, which should be ≥`3.x`.
         > (For all below commands, use whichever works on your machine: `python` or `python3`)
     - if not installed, then go to the [python download site](https://www.python.org/downloads/) and follow download instructions.
 - Install boto3 outside of the virtual environment
