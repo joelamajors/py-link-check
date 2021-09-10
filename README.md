@@ -70,8 +70,8 @@ docker run --name splash -d -p 8050:8050 --rm scrapinghub/splash
     ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
     - aws-standard
     ``` scrapy crawl aws-standard -a url=https://website.tld -O nameOfWebsite.csv ```
-    - blog-twill
-    ``` scrapy crawl blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
+    - aws-blog-twill
+    ``` scrapy crawl aws-blog-twill -a url=https://website.tld -O nameOfWebsite.csv ```
 
 Notes
 - The `-O` flag is outputting the status codes to a CSV. You should name this the same name of the name of website without the http|https or the TLD.
